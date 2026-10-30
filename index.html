@@ -391,6 +391,10 @@ button{font:inherit;color:inherit}
 
 .ico-in{display:inline-flex;vertical-align:-4px;margin:0 1px}
 .ico-in svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.btn.wide{flex:1;text-align:center}
+
+.daily{display:inline-block;background:var(--lav);border:1.5px solid var(--ink);border-radius:999px;padding:5px 12px;font-weight:700;font-size:13px;margin:4px 0 6px}
 </style>
 </head>
 <body>
@@ -1081,7 +1085,8 @@ function newStory(){
 function newRun(mode, lineId, playerName, playerLook){
   const line = LINES[lineId];
   const free = mode === "free";
-  const seed = hashStr(todayKey() + "|" + lineId + "|" + mode);
+  // Boss rounds: a brand-new line every playthrough. Free Play: one line per day, shared by everyone.
+  const seed = free ? hashStr(todayKey() + "|" + lineId + "|" + mode) : (Math.random()*2**32)>>>0;
   const r = mulberry32(seed);
   const count = free ? 10 : 4;
   const {people, used} = genLine(line, count, r, {poolSize: free ? 8 : 6, groups: free});
@@ -1474,9 +1479,8 @@ function storyWin(bonus){
       <p>Six rivals, six receipts. Here's everything you just played, in one place:</p>
       <div class="scoreline"><span class="stat">Score<b>${S.score}</b></span><span class="stat">Moves left<b>${S.moves}</b> (+${bonus})</span><span class="stat">Backfires<b>${S.backfires}</b></span></div>
       <div class="rec-list">${receiptsHTML()}</div>
-      <div class="btns"><button class="btn" id="knock">Knock on the door</button><button class="btn alt" id="again">Play again</button></div>`);
+      <div class="btns"><button class="btn wide" id="knock">Knock on the door</button></div>`);
     $("knock").onclick = startPanel;
-    $("again").onclick = restartStory;
   }, 900);
 }
 function storyLose(){
@@ -1550,7 +1554,7 @@ function flipSlot(){
   open(`<div class="kicker">Generating a line</div>
     <h2>Every line is <i>random</i>.</h2>
     <div class="slots">${finals.map((_, i) => `<div class="reel" id="reel${i}"><div class="reel-face"></div><div class="reel-name">&nbsp;</div><div class="reel-title">&nbsp;</div></div>`).join("")}</div>
-    <p class="muted" id="slotCap">Names, moods, weak spots, even who's grouped with whom. Seeded daily, so everyone faces the same line on the same day.</p>
+    <p class="muted" id="slotCap">Names, moods, weak spots, even who's grouped with whom. Your three lines in a moment will be brand new too. In Free Play, one line is shared by everyone each day, so the leaderboard stays fair.</p>
     <div class="btns"><button class="btn" id="go" disabled>Spinning...</button></div>`, true);
   const timers = [];
   finals.forEach((f, i) => {
@@ -1716,8 +1720,9 @@ function showPitch(){
     <ul>
       <li><b>A line people play instead of resent.</b> Scan a QR in the queue, play while you wait.</li>
       <li><b>One daily seed.</b> Everyone faces the same line, so the leaderboard is fair and worth sharing.</li>
+      <li><b>A fresh line every day.</b> New people, new moods, new weak spots at midnight, so regulars never play the same puzzle twice.</li>
       <li><b>Rewards that pull people back.</b> #1 eats or drinks free, the top of the board gets 10%, everyone who finishes gets 5%.</li>
-      <li><b>Every player leaves a name.</b> And a reason to come back tomorrow, when the line changes.</li>
+      <li><b>Every coupon is tied to an email.</b> Anyone can play, but you sign in to put your name on the leaderboard and claim a coupon. One account, one ranked run a day, so nobody farms rewards. And the brand finally sees the whole funnel: who played, who redeemed, and who actually turned up.</li>
       <li><b>Each brand gets its own window dressing.</b> A streetwear drop, a brunch spot, a taproom: same engine, new skin, new gags.</li>
     </ul>
     <p>Building and running partnerships like this is the job I want.</p>
@@ -1782,7 +1787,8 @@ function levelSelect(){
   if(S && S.busy) return;
   open(`<div class="kicker">Level select · Free Play</div>
     <h2>Pick a <i>line</i>.</h2>
-    <p>10 random people, one group with a leader, and a new line every day. Same line for everyone today, so the leaderboard is fair.</p>
+    <p>10 random people and one group with a leader. Everyone gets the same line today, so the leaderboard is fair.</p>
+    <p class="daily">Same line all day. New one tomorrow.</p>
     <div class="tiles">${LINE_ORDER.map((id, i) => lineTile(id, i, false)).join("")}</div>
     <label class="seat solo">Your name for the leaderboard<input id="fpName" maxlength="24" value="${esc(store.get("name", ""))}" placeholder="Your name"></label>
     <div class="btns"><button class="btn alt" id="story">Back to the applicant queue</button></div>`, true);
@@ -1812,10 +1818,10 @@ function freeEnd(won, bonus, why){
   setTimeout(() => {
     open(`<div class="kicker">Free Play · ${esc(L.brand)}</div>
       <h2>${won ? `You made it <i>in</i>.` : why === "soldout" ? `<i>Sold out.</i>` : `Stuck at <i>${ord(S.rivals.length + 1)}</i>.`}</h2>
+      <p class="daily">Same line all day. New one tomorrow.</p>
       <div class="scoreline"><span class="stat">Score<b>${S.score}</b></span><span class="stat">Passed<b>${S.gained}</b></span><span class="stat">Chains<b>${S.chains}</b></span><span class="stat">Backfires<b>${S.backfires}</b></span></div>
       <table class="board"><thead><tr><th>#</th><th>Today on this device</th><th>Score</th></tr></thead><tbody>
       ${rows.map((x,i) => `<tr><td>${i+1}</td><td>${esc(x.name)}</td><td>${x.score}</td></tr>`).join("")}</tbody></table>
-      <p class="note">Same line all day. A new one tomorrow.</p>
       <div class="btns"><button class="btn" id="again">Play this line again</button><button class="btn alt" id="lvl">Other lines</button></div>`);
     $("again").onclick = () => startFree(L.id, S.player.name);
     $("lvl").onclick = levelSelect;
