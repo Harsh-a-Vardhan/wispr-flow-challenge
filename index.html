@@ -1,0 +1,1863 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>You're 7th in Line (#TisFAR)</title>
+<meta name="description" content="A Bengaluru queue game and portfolio by Harsha Vardhan, built by voice with Wispr Flow.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFDF0; --paper:#FFFFFF; --cream:#FFF7DA; --ink:#1A1A1A; --muted:#625c52; --line:#E8E1CC;
+  --lav:#E9D8FB; --lav-2:#F4ECFF; --coral:#FF6B4A; --mustard:#FFB547; --green:#0F4C3A; --pink:#F7B9E1; --maroon:#7A1F3D;
+  --t-partnerships:#D9472A; --t-systems:#0F6B52; --t-scale:#7A3FB0; --t-build:#2F64B0; --t-ops:#A8690B; --t-growth:#C03A82;
+  --serif:"Instrument Serif", Georgia, "Times New Roman", serif;
+  --body:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+#app{max-width:1040px;margin:0 auto;padding:16px 16px 28px;display:flex;flex-direction:column;gap:14px;min-height:100dvh}
+
+/* HUD */
+.hud{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--serif);font-weight:400;font-size:clamp(30px,5vw,44px);letter-spacing:-.01em;line-height:1}
+.brand i{font-style:italic}
+.brand .tag{font-family:var(--body);font-size:13px;font-weight:600;color:var(--muted);letter-spacing:0;vertical-align:middle;margin-left:4px}
+.brand small{display:block;font-family:var(--body);font-weight:500;font-size:12.5px;color:var(--muted);letter-spacing:0;margin-top:6px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stat{background:var(--paper);border:1.5px solid var(--ink);border-radius:999px;padding:6px 13px;font-size:13px;font-weight:500;white-space:nowrap}
+.stat b{font-weight:700;font-size:15px;margin-left:5px}
+.stat.low{background:#FFE3DA}
+.peek{background:var(--lav);border:1.5px solid var(--ink);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.peek:hover{background:#dfc6fa}
+.peek:disabled{background:#efeae0;color:var(--muted);border-color:#cfc7b6;cursor:not-allowed}
+
+/* Street scene */
+.street{position:relative;display:grid;grid-template-columns:minmax(0,1fr) clamp(70px,17%,160px);border:1.5px solid var(--ink);border-radius:26px;overflow:hidden;
+  background:var(--cream);min-height:clamp(240px,33vw,310px)}
+.ground{position:absolute;left:0;right:0;bottom:0;height:34%;background:var(--lav);border-top:1.5px solid var(--ink)}
+.deco{position:absolute;pointer-events:none}
+.deco.bush{left:1%;bottom:calc(34% - 5px);width:clamp(64px,12vw,124px)}
+.deco.bush2{left:clamp(52px,10.5vw,112px);bottom:calc(34% - 4px);width:clamp(36px,6.5vw,66px)}
+.deco.sun{left:70%;top:6%;width:clamp(46px,7vw,72px)}
+.deco.cloud{left:20%;top:9%;width:clamp(58px,10vw,104px)}
+.deco.cloud2{left:46%;top:20%;width:clamp(40px,7vw,72px)}
+.deco.squig{left:5%;top:12%;width:clamp(44px,7vw,74px);color:var(--coral)}
+.deco.squig2{left:58%;top:8%;width:clamp(30px,5vw,52px);color:var(--green)}
+.deco.stars{left:36%;top:6%;width:clamp(30px,5vw,48px)}
+.deco.grass{left:0;right:0;bottom:calc(34% - 2px);width:100%;height:14px}
+.queue{position:relative;display:flex;align-items:flex-end;justify-content:flex-end;gap:clamp(2px,1.2vw,14px);padding:0 clamp(4px,1.5vw,16px) 14px;z-index:1}
+.person{appearance:none;background:none;border:0;padding:0;width:clamp(30px,9.4vw,96px);flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;position:relative}
+.person svg{width:100%;height:auto;display:block;transition:transform .2s}
+.person:hover svg{transform:translateY(-3px) rotate(-1deg)}
+.person .nm{font-weight:700;font-size:clamp(10px,1.35vw,13px);line-height:1.1;text-align:center}
+.person .tg{font-size:11px;color:var(--muted);text-align:center;line-height:1.15;min-height:13px}
+.chips{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;min-height:18px}
+.chip{font-size:10px;font-weight:700;border-radius:999px;padding:2px 7px;border:1.5px solid var(--ink);background:#fff;line-height:1.25;white-space:nowrap}
+.chip.q{color:var(--muted);border-color:#bdb4a2}
+.chip.weak{color:#fff}
+.chip.imm{background:#fff;text-decoration:line-through}
+.chip.tried{background:#f3eee4;color:var(--muted);border-color:#bdb4a2;text-decoration:line-through}
+.person.you .nm{color:var(--coral)}
+.person.you::before{content:"";position:absolute;left:8%;right:8%;bottom:34px;height:10px;border-radius:50%;background:rgba(255,107,74,.28)}
+.person.out svg{filter:grayscale(.6);opacity:.5}
+.person.out .nm,.person.out .tg{opacity:.55}
+.person.out:hover svg{transform:none}
+.armed .person.rival svg{animation:bob 1s ease-in-out infinite}
+.armed .person.rival::after{content:"";position:absolute;inset:-4px -2px auto;height:calc(100% + 6px);border:1.5px dashed var(--coral);border-radius:16px;pointer-events:none}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.person.shake svg{animation:shake .45s}
+@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.office{position:relative;z-index:1;border-left:1.5px solid var(--ink);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 8px}
+.awning{position:absolute;top:0;left:0;right:0;height:22px;border-bottom:1.5px solid var(--ink);
+  background:repeating-linear-gradient(90deg,var(--coral) 0 14px,#fff 14px 28px)}
+.awning::after{content:"";position:absolute;left:0;right:0;bottom:-9px;height:9px;
+  background:radial-gradient(circle at 7px 0,var(--coral) 6px,transparent 6.5px) 0 0/28px 9px,radial-gradient(circle at 21px 0,#fff 6px,transparent 6.5px) 0 0/28px 9px}
+.sign{position:absolute;top:40px;left:8px;right:8px;background:var(--ink);color:#fff;border-radius:999px;padding:7px 4px;text-align:center;font-family:var(--serif);font-size:clamp(13px,1.9vw,19px);line-height:1}
+.live{position:absolute;top:84px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--ink);border-radius:10px;padding:5px 8px;
+  font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1.15;white-space:nowrap}
+.live .ls{display:none}
+.lamp{width:10px;height:10px;border-radius:50%;background:#ff2b2b;border:1.5px solid var(--ink);flex:none;animation:blink 1.1s ease-in-out infinite}
+@keyframes blink{0%,100%{box-shadow:0 0 0 0 rgba(255,43,43,.0);background:#ff2b2b}50%{box-shadow:0 0 10px 4px rgba(255,43,43,.55);background:#ff7a7a}}
+.door{width:66%;height:46%;background:var(--green);border:1.5px solid var(--ink);border-bottom:0;border-radius:40px 40px 0 0;position:relative}
+.door::after{content:"";position:absolute;right:14%;top:52%;width:7px;height:7px;border-radius:50%;background:var(--mustard);border:1.5px solid var(--ink)}
+.door.open{background:#1a1a1a}
+.step{width:calc(100% + 16px);height:14px;background:var(--pink);border-top:1.5px solid var(--ink)}
+
+/* Speech */
+.speech{background:var(--paper);border:1.5px solid var(--ink);border-radius:22px;padding:14px 16px;display:flex;gap:14px;align-items:flex-start;min-height:96px}
+.sp-av{width:48px;flex:none}
+.sp-av svg{width:100%;height:auto;display:block}
+.sp-body{flex:1;min-width:0}
+.sp-name{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+.sp-name svg{width:34px;height:12px;color:var(--coral);flex:none}
+.sp-text{font-size:15.5px;line-height:1.45;margin-top:4px}
+.receipt{margin-top:9px;border-radius:14px;padding:9px 12px;background:var(--lav-2);font-size:13px;line-height:1.5;border:1.5px solid #d9c4f5}
+.receipt b{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:2px}
+.receipt.bad{background:#FFF0EA;border-color:#ffc9b8}
+.receipt.bad b{color:var(--coral)}
+.fx{font-weight:700}
+.fx.good{color:var(--green)}.fx.bad{color:#d9472a}
+
+/* Hand */
+.prompt{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.prompt .dot{width:8px;height:8px;border-radius:50%;background:var(--coral);flex:none}
+.hand{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.card{appearance:none;text-align:left;background:var(--paper);border:1.5px solid var(--ink);border-radius:20px;padding:13px 14px 14px;cursor:pointer;
+  transition:transform .15s,background .15s;display:flex;flex-direction:column;gap:5px;min-height:122px;position:relative}
+.card:hover{transform:translateY(-3px)}
+.card.sel{background:var(--lav);transform:translateY(-5px);border-width:2px;box-shadow:0 10px 24px rgba(122,63,176,.18)}
+.card .ty{align-self:flex-start;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tc);
+  background:color-mix(in srgb,var(--tc) 13%,#fff);border-radius:999px;padding:3px 9px}
+.card h3{margin:2px 0 0;font-family:var(--serif);font-weight:400;font-size:clamp(19px,2.3vw,24px);line-height:1.05}
+.card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.35}
+.card .wh{margin-top:auto;font-size:11px;font-weight:700;color:var(--ink);opacity:.75}
+.card.obs{background:#FFF1CF;--tc:#8a5a00}
+.card.obs.sel{background:var(--mustard)}
+.card:disabled{opacity:.5;cursor:not-allowed}
+.tray{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
+.tray .chip{color:#fff}
+.tray .chip.rc{cursor:pointer;font:inherit;font-size:11px;font-weight:700;padding:3px 10px}
+.tray .chip.rc:hover{transform:translateY(-1px)}
+.foot{font-size:12px;color:var(--muted);text-align:center;margin-top:auto;padding-top:6px}
+
+/* Overlays */
+.overlay{position:fixed;inset:0;background:rgba(26,26,26,.45);display:grid;place-items:center;padding:16px;z-index:50;animation:fade .2s}
+.overlay[hidden]{display:none}
+@keyframes fade{from{opacity:0}}
+.modal{background:var(--bg);border:1.5px solid var(--ink);border-radius:26px;box-shadow:0 24px 70px rgba(0,0,0,.22);max-width:580px;width:100%;padding:26px;max-height:90dvh;overflow:auto;animation:pop .25s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes pop{from{transform:scale(.95);opacity:0}}
+.modal h2{font-family:var(--serif);font-weight:400;font-size:clamp(32px,6vw,44px);letter-spacing:-.01em;margin:0 0 6px;line-height:1.02}
+.modal h2 i{font-style:italic}
+.modal .kicker{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--coral);margin-bottom:8px}
+.modal p{line-height:1.55;margin:8px 0}
+.modal ul{padding-left:18px;margin:10px 0;line-height:1.55}
+.modal li{margin:4px 0}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.btn{appearance:none;border:1.5px solid var(--ink);border-radius:999px;padding:12px 22px;font-weight:600;font-size:15px;cursor:pointer;background:var(--ink);color:#fff;transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.alt{background:#fff;color:var(--ink)}
+.btn:disabled{background:#efeae0;color:var(--muted);cursor:not-allowed}
+.cheat table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+.cheat th,.cheat td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+.cheat th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.timer{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:12px}
+.timer i{display:block;height:100%;background:var(--coral);width:100%}
+.timer.run i{animation:drain 2s linear forwards}
+@keyframes drain{to{width:0}}
+.rec-list{display:grid;gap:8px;margin-top:10px}
+.rec{border:1.5px solid var(--ink);border-radius:16px;padding:11px 13px;background:#fff}
+.rec h4{margin:2px 0 3px;font-family:var(--serif);font-weight:400;font-size:21px}
+.rec p{margin:0;font-size:13px;line-height:1.45}
+.rec .wh{font-size:10.5px;font-weight:700;color:var(--tc);text-transform:uppercase;letter-spacing:.06em;background:color-mix(in srgb,var(--tc) 13%,#fff);border-radius:999px;padding:2px 8px}
+.scoreline{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
+.lose-hero{display:flex;align-items:center;gap:14px;margin:4px 0 12px}
+.lose-hero svg{width:90px;flex:none}
+.bubble-q{position:relative;background:#fff;border:1.5px solid var(--ink);border-radius:18px;padding:11px 15px;font-weight:600;line-height:1.4}
+.bubble-q::before{content:"";position:absolute;left:-8px;top:50%;width:13px;height:13px;background:#fff;border-left:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);transform:translateY(-50%) rotate(45deg)}
+.tear{transform-box:fill-box;animation:drip 1.3s ease-in infinite}
+.tear.t2{animation-delay:.6s}
+@keyframes drip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(9px);opacity:0}}
+.lesson-tag{display:inline-block;background:var(--lav);border:1.5px solid var(--ink);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700}
+
+@media (max-width:720px){
+  .live .lt{display:none}
+  .live .ls{display:inline}
+  .hand{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .person .tg{display:none}
+  .card{min-height:108px}
+  .card p{font-size:12px}
+}
+@media (max-width:420px){
+  .queue{gap:2px;padding:0 3px 12px}
+  .person .nm{font-size:10px}
+  .person.you::before{bottom:30px}
+  .chip{font-size:9px;padding:1px 4px}
+  .stat{padding:5px 10px;font-size:12px}
+  .stat b{font-size:14px}
+  .sign{left:4px;right:4px;top:34px;font-size:12px}
+  .live{top:66px;padding:4px 6px;font-size:9px}
+  .awning{height:16px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== Themes (window dressing) ===== */
+.street{--sky:var(--cream);--groundc:var(--lav);--doorc:var(--green);--aw1:var(--coral);--aw2:#fff;--facade:#fff;--lab:var(--ink);--labsub:var(--muted);background:var(--sky)}
+.street .ground{background:var(--groundc)}
+.street .door{background:var(--doorc)}
+.street .office{background:var(--facade)}
+.street .awning{background:repeating-linear-gradient(90deg,var(--aw1) 0 14px,var(--aw2) 14px 28px)}
+.street .awning::after{background:radial-gradient(circle at 7px 0,var(--aw1) 6px,transparent 6.5px) 0 0/28px 9px,radial-gradient(circle at 21px 0,var(--aw2) 6px,transparent 6.5px) 0 0/28px 9px}
+.person .nm{color:var(--lab)}
+.person .tg{color:var(--labsub)}
+.person.you .nm{color:var(--coral)}
+#deco{position:absolute;inset:0;z-index:0;pointer-events:none}
+.theme-store{--sky:#E9D8FB;--groundc:#FFE3A8;--doorc:#FF6B4A;--aw1:#0F4C3A;--aw2:#fff}
+.theme-cafe{--sky:#FFF1CF;--groundc:#F7B9E1;--doorc:#7A1F3D;--aw1:#FF6B4A;--aw2:#FFF7DA}
+.theme-bar{--sky:#1C2340;--groundc:#4a2348;--doorc:#111;--aw1:#7A1F3D;--aw2:#F7B9E1;--facade:#2a2f4a;--lab:#fff;--labsub:#d9d3f0}
+.theme-panel{--sky:#F4ECFF;--groundc:#E8D3B5;--doorc:#03504A;--aw1:#03504A;--aw2:#FFFDE8}
+.theme-bar .sign{background:#111;color:#F7B9E1;box-shadow:0 0 14px rgba(247,185,225,.75);border:1.5px solid #F7B9E1}
+.theme-bar .live{background:#111;color:#fff;border-color:#F7B9E1}
+.theme-bar .step{background:#7A1F3D}
+.theme-bar .ground{border-top-color:#F7B9E1}
+.theme-bar.hh-over .lamp{animation:none;background:#555}
+.ground.floor{background:repeating-linear-gradient(90deg,#E8D3B5 0 46px,#d9c19e 46px 47.5px)}
+.office{justify-content:flex-start;padding:34px 8px 0;gap:8px}
+.office .sign{position:static;width:100%;font-size:clamp(12px,1.7vw,18px);padding:7px 8px;line-height:1.05}
+.office .live{position:static;transform:none;max-width:100%}
+.office .door{margin-top:auto}
+.office .step{width:calc(100% + 16px);margin:0 -8px}
+.facade-icon{width:36px}
+.facade-icon svg{width:100%;height:auto;display:block}
+
+.deco.window{left:3%;top:8%;width:clamp(78px,13vw,136px)}
+.deco.board{left:38%;top:6%;width:clamp(90px,15vw,150px)}
+.deco.clock{left:72%;top:8%;width:clamp(28px,4vw,40px)}
+.deco.plant{left:1%;bottom:calc(34% - 4px);width:clamp(28px,5vw,50px)}
+.deco.bags{left:4%;top:9%;width:clamp(60px,10vw,96px)}
+.deco.tagd{left:60%;top:10%;width:clamp(56px,9vw,82px)}
+.deco.rack{left:0;bottom:calc(34% - 4px);width:clamp(56px,10vw,110px)}
+.deco.cup{left:5%;top:9%;width:clamp(50px,8vw,80px)}
+.deco.croissant{left:38%;top:12%;width:clamp(40px,6vw,64px)}
+.deco.umbrella{left:0;bottom:calc(34% - 6px);width:clamp(52px,9vw,96px)}
+.deco.lights{left:0;top:0;width:100%;height:40px}
+.deco.moon{left:72%;top:16%;width:clamp(30px,4.5vw,46px)}
+.deco.nstars{left:12%;top:20%;width:55%}
+.deco.neon{left:16%;top:12%;width:clamp(48px,8vw,80px)}
+.deco.barrel{left:1%;bottom:calc(34% - 4px);width:clamp(84px,15vw,160px)}
+
+/* ===== Big lines (Free Play): scroll on narrow screens ===== */
+.street.big .queue{justify-content:flex-start;overflow-x:auto;overflow-y:hidden;padding-top:44px;scrollbar-width:thin}
+.street.big .queue > :first-child{margin-left:auto}
+.street.big .person{width:clamp(36px,6.4vw,70px)}
+.street.big .person .tg{display:none}
+.more{align-self:flex-end;flex:none;font-size:11px;font-weight:700;background:#fff;color:var(--ink);border:1.5px solid var(--ink);border-radius:999px;padding:3px 8px;margin-bottom:64px;white-space:nowrap}
+
+/* ===== Panel ===== */
+.gap{flex:0 1 9%}
+.theme-panel .person{--w:clamp(50px,11vw,104px);width:var(--w)}
+.panelrow{--w:clamp(50px,11vw,104px);display:flex;align-items:flex-end;gap:clamp(4px,1.6vw,18px);position:relative;flex:none}
+.panelrow::after{content:"";position:absolute;left:-12px;right:-12px;top:calc(var(--w) * 1.02);height:calc(var(--w) * .42);background:#fff;border:1.5px solid var(--ink);border-radius:10px;z-index:2;box-shadow:0 6px 0 -2px #d9c19e;pointer-events:none}
+.person.panelist .nm{position:relative;z-index:3;margin-top:4px}
+.person.panelist .chips{position:relative;z-index:3}
+.person.panelist.done svg{transform:translateY(-2px)}
+.chip.ok{background:#0F6B52;color:#fff;border-color:#0F6B52}
+.chip.lead{background:var(--mustard);color:var(--ink)}
+.chip.grp{background:var(--lav);color:var(--ink)}
+
+/* ===== Cards: colour strip on the left ===== */
+.card{overflow:hidden;padding-left:20px}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--tc,#bdb4a2);border-right:1.5px solid var(--ink)}
+.card.obs::before{background:var(--mustard)}
+.card.special{background:linear-gradient(135deg,#FFF1CF,#F7B9E1);border-width:2px;--tc:#FF6B4A;animation:glow 1.6s ease-in-out infinite}
+.card.special.sel{background:var(--lav)}
+@keyframes glow{50%{box-shadow:0 0 0 5px rgba(255,107,74,.25)}}
+
+/* ===== Modals: slots, tiles, board, finale ===== */
+.modal.wide{max-width:880px}
+.note{font-size:13px;color:var(--muted);background:var(--lav-2);border-radius:12px;padding:9px 12px;line-height:1.5}
+.muted{color:var(--muted);font-size:13px}
+.slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+.reel{border:1.5px solid var(--ink);border-radius:18px;background:#fff;padding:10px 6px 12px;text-align:center;overflow:hidden}
+.reel-face{height:120px;display:flex;justify-content:center}
+.reel-face svg{height:100%;width:auto}
+.reel.stop{background:var(--lav);animation:pop .3s}
+.reel-name{font-weight:700;margin-top:4px}
+.reel-title{font-size:11px;color:var(--muted);line-height:1.3;min-height:28px}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.tile{border:1.5px solid var(--ink);border-radius:20px;padding:14px;background:var(--sky);color:var(--lab);display:flex;flex-direction:column;gap:4px}
+.tile-art{width:58px}
+.tile-art svg{width:100%;height:auto;display:block}
+.tile-what{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.tile h3{margin:0;font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.05}
+.tile p{margin:2px 0;font-size:13px;line-height:1.45}
+.tile .prize{font-weight:700;color:var(--coral)}
+.theme-bar.tile .prize{color:#F7B9E1}
+.tile .btn{margin-top:auto;align-self:flex-start;padding:9px 16px;font-size:14px}
+.theme-bar.tile .btn{background:#F7B9E1;color:var(--ink)}
+.seat{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:auto}
+.seat input{font:inherit;font-size:15px;font-weight:600;text-transform:none;letter-spacing:0;border:1.5px solid var(--ink);border-radius:12px;padding:8px 10px;background:#fff;color:var(--ink)}
+.seat.solo{margin-top:14px;color:var(--muted)}
+.board{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+.board th,.board td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.board th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.board td span{font-size:12px;color:var(--muted)}
+.board tr.me{background:var(--lav-2)}
+.board tr.npc{color:var(--muted)}
+.finale{text-align:center}
+.finale h2{margin-top:10px}
+.crowd{display:flex;justify-content:center;flex-wrap:wrap;gap:2px;padding-top:18px}
+.fan{width:46px;position:relative;animation:jump .9s ease-in-out infinite}
+.fan svg{width:100%;height:auto;display:block}
+.cheer{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;background:#fff;border:1.5px solid var(--ink);border-radius:999px;padding:1px 7px;white-space:nowrap;color:var(--coral)}
+@keyframes jump{50%{transform:translateY(-7px)}}
+.front{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin-top:-6px}
+.pp{width:80px;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center}
+.pp svg{width:100%;height:auto;display:block}
+.pp.me{width:112px;color:var(--coral)}
+.yesno{display:flex;justify-content:center;gap:12px;margin:14px 0 6px;min-height:64px;align-items:center}
+.contact{display:flex;flex-direction:column;align-items:center;gap:10px}
+.contact .btn{min-width:250px;text-decoration:none;text-align:center}
+
+@media (max-width:720px){
+  .slots{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tiles{grid-template-columns:1fr}
+  .facade-icon{display:none}
+  .fan{width:34px}
+  .pp{width:60px}.pp.me{width:84px}
+}
+.person .chips{max-width:100%;overflow:hidden}
+.street.big .person{width:clamp(42px,6.4vw,70px)}
+.street.big .chip{font-size:8.5px;padding:1px 4px}
+@media (max-width:520px){
+  .panelrow{--w:42px;gap:6px}
+  .theme-panel .person{--w:42px}
+  .gap{flex-basis:4%}
+  .panelrow::after{left:-6px;right:-6px}
+}
+
+/* one consistent label height under every person */
+.person .tg{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.3em;line-height:1.15}
+
+/* ===== Fit Check: streetwear drop ===== */
+.theme-store{--sky:#EFEBE4;--groundc:#D6D0C4;--doorc:#2a2f3a;--aw1:#1A1A1A;--aw2:#fff;--facade:#1A1A1A}
+.theme-store .sign{background:#fff;color:#1A1A1A;text-transform:uppercase;font-family:var(--body);font-weight:800;letter-spacing:.12em;font-size:clamp(10px,1.3vw,14px)}
+.theme-store .door{background:linear-gradient(135deg,#3a4150 0 40%,#2a2f3a 40%)}
+.theme-store .step{background:#FF6B4A}
+.theme-store .facade-icon{width:40px}
+.ground.concrete{background:repeating-linear-gradient(90deg,#D6D0C4 0 90px,#cbc4b6 90px 91.5px)}
+.deco.bricks{left:0;top:0;width:100%;height:66%}
+.theme-store .deco.window{left:2%;top:8%;width:clamp(110px,20vw,190px)}
+.deco.poster{left:clamp(130px,24vw,230px);top:10%;width:clamp(42px,6.5vw,66px)}
+.deco.graffiti{left:58%;top:8%;width:clamp(70px,12vw,120px)}
+.deco.rope{left:6%;width:78%;bottom:calc(34% - 6px);height:clamp(30px,5vw,46px)}
+.deco.boxes{left:0;bottom:calc(34% - 6px);width:clamp(44px,7vw,70px)}
+.mascot{position:absolute;top:10%;left:44%;width:clamp(42px,6.5vw,66px);background:none;border:0;padding:0;cursor:pointer;z-index:3}
+.mascot svg{width:100%;height:auto;display:block;animation:float 2.6s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-6px)}}
+.mascot:hover svg{animation-play-state:paused}
+.mascot.hop svg{animation:hop .45s ease-out}
+@keyframes hop{40%{transform:translateY(-10px) rotate(6deg)}}
+.mascot[hidden]{display:none}
+
+/* ===== Line switcher (boss level) ===== */
+.switcher{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.switcher[hidden]{display:none}
+.mini{appearance:none;display:flex;align-items:center;gap:10px;text-align:left;border:1.5px solid var(--ink);border-radius:16px;padding:8px 12px;background:var(--sky);color:var(--lab);cursor:pointer;
+  opacity:.6;transform:scale(.97);transition:opacity .15s,transform .15s,box-shadow .15s}
+.mini:hover:not(:disabled){opacity:1;transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.12)}
+.mini.active{opacity:1;transform:none;border-width:2px;box-shadow:0 0 0 3px var(--coral)}
+.mini.done{opacity:.45;cursor:default}
+.mini:disabled{cursor:default}
+.mini-art{width:30px;flex:none}
+.mini-art svg{width:100%;height:auto;display:block}
+.mini-txt{display:flex;flex-direction:column;min-width:0}
+.mini-txt b{font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-txt small{font-size:11px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:620px){
+  .mini{padding:6px 8px;gap:6px}
+  .mini-art{width:22px}
+  .mini-txt b{font-size:14px}
+  .mini-txt small{font-size:9.5px}
+}
+
+@media (max-width:720px){ .person .tg{display:none} }
+
+/* Door: taller (top roughly at head height) and sitting right on the step, no gap */
+.office{gap:0}
+.office .sign,.office .live{margin-bottom:8px}
+.office .facade-icon{margin-bottom:6px}
+.office .door{flex:1 1 auto;height:auto;min-height:56px;margin-top:4px}
+.office .step{flex:none}
+/* Home door: four panels, like a chocolate bar */
+.theme-story .door{background:var(--doorc) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cg fill='rgba(255,255,255,0.10)' stroke='rgba(0,0,0,0.5)' stroke-width='1.6' vector-effect='non-scaling-stroke'%3E%3Crect x='15' y='22' width='31' height='33' rx='4'/%3E%3Crect x='54' y='22' width='31' height='33' rx='4'/%3E%3Crect x='15' y='61' width='31' height='31' rx='4'/%3E%3Crect x='54' y='61' width='31' height='31' rx='4'/%3E%3C/g%3E%3C/svg%3E") center/100% 100% no-repeat}
+.theme-story .door::after{right:5%;top:56%;width:6px;height:6px}
+
+/* Knowledge icons above heads (black line icons; white in the bar) */
+.person .badges{display:flex;gap:4px;justify-content:center;align-items:center;height:20px;color:var(--lab);flex:none}
+.bdg{display:inline-flex;align-items:center;gap:1px;font-size:10px;font-weight:800;line-height:1}
+.bdg svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bdg i{font-style:normal}
+.person .chips{min-height:18px}
+@media (max-width:520px){ .bdg svg{width:13px;height:13px} .bdg{font-size:8.5px} .person .badges{height:16px;gap:2px} }
+/* count sits under its icon, small, so three icons fit across one head */
+.person .badges{height:30px;align-items:flex-start;gap:3px}
+.bdg{flex-direction:column;gap:0;font-size:8.5px;line-height:1.05}
+.bdg i{display:block;height:10px}
+@media (max-width:520px){ .person .badges{height:24px;gap:1px} .bdg{font-size:7.5px} .bdg i{height:9px} }
+
+.ico-in{display:inline-flex;vertical-align:-4px;margin:0 1px}
+.ico-in svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="hud">
+    <div class="brand"><span id="brandTitle"></span><small id="brandSub"></small></div>
+    <div class="stats" id="stats"></div>
+  </header>
+  <nav class="switcher" id="switcher" hidden aria-label="Switch line"></nav>
+  <section class="street theme-story" id="street" aria-label="The line">
+    <div id="deco" aria-hidden="true"></div>
+    <button class="mascot" id="mascot" type="button" aria-label="Drip, the Fit Check mascot" hidden></button>
+    <div class="queue" id="queue"></div>
+    <div class="office">
+      <div class="awning"></div>
+      <div class="sign" id="signText">Wispr Flow</div>
+      <div class="live"><i class="lamp"></i><span class="lt" id="liveText">Growth team<br>interviews live</span><span class="ls" id="liveShort">Live</span></div>
+      <div class="facade-icon" id="facadeIcon"></div>
+      <div class="door" id="door"></div>
+      <div class="step"></div>
+    </div>
+  </section>
+  <section class="speech" id="speech" aria-live="polite"></section>
+  <div class="prompt" id="prompt"></div>
+  <section class="hand" id="hand"></section>
+  <div class="tray" id="tray"></div>
+  <div class="foot">Built by Harsha Vardhan, by voice, with Wispr Flow. Every card in Level 1 is a real thing I did.</div>
+</div>
+<div class="overlay" id="ov" hidden><div class="modal" id="modal"></div></div>
+<script>
+(() => {
+"use strict";
+/* ---------- Content ---------- */
+const TYPES = {
+  partnerships:{label:"Partnerships", c:"var(--t-partnerships)"},
+  systems:{label:"Systems", c:"var(--t-systems)"},
+  scale:{label:"Scale", c:"var(--t-scale)"},
+  build:{label:"Build", c:"var(--t-build)"},
+  ops:{label:"Ops", c:"var(--t-ops)"},
+  growth:{label:"Growth", c:"var(--t-growth)"}
+};
+
+const CARDS = [
+  {id:"aggregator", type:"partnerships", title:"Aggregator Whisperer", short:"10+ food aggregators across 4 regions", where:"UrbanPiper",
+   proof:"At UrbanPiper I onboarded and managed partnerships with 10+ food aggregators across India, EU, MENA and LATAM, as part of the growth team behind a 15% MRR lift."},
+  {id:"prism", type:"systems", title:"PRISM", short:"25 to 30 menu rules automated, 35% fewer tickets", where:"UrbanPiper",
+   proof:"I led PRISM at UrbanPiper, an automated menu moderation service. We automated 25 to 30 well-known menu rules, then scaled it from India and MENA to every region, with rule versioning and a toggle system so TAMs could switch rules on or off per market. Client support requests dropped 35%."},
+  {id:"scale", type:"scale", title:"$10M → $24M", short:"Enterprise account growth", where:"Handshake AI",
+   proof:"At Handshake AI I drove execution across 6+ programs with frontier AI research labs, part of the push that grew a key enterprise account from $10M to $24M a year."},
+  {id:"skus", type:"build", title:"8,000 SKUs → 10L MRR", short:"AI inventory platform, plus tighter delivery", where:"TechWire Studio",
+   proof:"At TechWire Studio I led delivery of an AI inventory platform for Xceed Electronics, tracking 8,000+ SKUs with RAG-powered search, and tightened delivery to help scale MRR from 6L to 10L."},
+  {id:"yield", type:"ops", title:"+5% Yield", short:"$1M a year, from a factory floor", where:"Licious",
+   proof:"At Licious I raised the chicken assembly line yield by 5% in 3 months at the Hoskote processing centre, worth about $1M a year."},
+  {id:"fest", type:"growth", title:"Fest Coordinator", short:"Led fest builds, revived a student chapter", where:"BITS Pilani",
+   proof:"At BITS I was a fest coordinator in the Department of Art, Design and Publicity, part of a 50+ person team, leading juniors to design and build fest structures. I also revived a dying ASME student chapter, growing it from 10 members to 30 by the time I left."}
+];
+const OBSERVE = {id:"observe", title:"Observe", short:"Watch someone closely. Reveals what gets to them.", where:"Costs 1 move"};
+
+const RIVALS = [
+  {id:"kabir", name:"Kabir", title:"LinkedIn Thought Leader", tag:"30K followers",
+   look:{skin:"#FFF3D6", hair:"short", hc:"#7A1F3D", shirt:"#0F4C3A", pants:"#1A1A1A", shoes:"#FFB547", mood:"smug", acc:["glasses","lapels","tablet"]},
+   quote:"Metrics are a mindset, not a number. Agree?",
+   hidden:"Has posted 41 times about shipping. Has shipped 0 times. Goes quiet around real numbers.",
+   weak:"scale", immune:"partnerships",
+   exit:"From $10M to $24M? ...Excuse me. I need to go post \"What a stranger in a queue taught me about B2B.\"",
+   bounce:"Partnerships? Bro, I have 30K followers. I AM the partnership."},
+  {id:"sneha", name:"Sneha", title:"Cold-Email Blaster", tag:"",
+   look:{skin:"#E9D8FB", hair:"bun", hc:"#0F4C3A", shirt:"#FF6B4A", pants:"#1A1A1A", shoes:"#fff", acc:["laptop"]},
+   quote:"Sent 4,000 emails before breakfast. One reply. It said \"unsubscribe\".",
+   hidden:"No partner has ever replied to her twice. Secretly wants one real relationship.",
+   weak:"partnerships", immune:"systems",
+   exit:"Ten aggregators, four regions, and they kept replying? ...I'm going to go rewrite my whole sequence.",
+   bounce:"Automation? I run 14 Zaps and a mail merge. I AM the system."},
+  {id:"vikram", name:"Vikram", title:"Growth Hacker", tag:"",
+   look:{skin:"#FFF3D6", hair:"cap", hc:"#FF6B4A", shirt:"#FFD23F", pants:"#0F4C3A", shoes:"#fff", mood:"smug", acc:["phone"]},
+   quote:"Use code {CODE}50 for 50% off absolutely nothing.",
+   hidden:"Every user he has ever had was paid for. Has never grown anything from zero.",
+   weak:"growth", immune:"build",
+   exit:"You took a dying student chapter from 10 to 30 members with zero ad budget? ...Deleting my referral link.",
+   bounce:"You built a platform? Cute. Did it go viral though?"},
+  {id:"meera", name:"Meera", title:"Consultant with a 2×2", tag:"",
+   look:{skin:"#FFF3D6", hair:"long", hc:"#7A1F3D", shirt:"#F7B9E1", pants:"#1A1A1A", shoes:"#fff", acc:["board"]},
+   quote:"Let me place you on my 2×2. You're... low impact, high effort.",
+   hidden:"Has only seen a factory in a case study. Loves frameworks, fears the shop floor.",
+   weak:"ops", immune:"scale",
+   exit:"You were on an actual factory floor? In Hoskote? At 6 AM? ...I'll see myself out.",
+   bounce:"$24M, fine. But was it in a deck? With a waterfall chart?"},
+  {id:"rishi", name:"Rishi", title:"Crypto Bro, now AI", tag:"",
+   look:{skin:"#F7B9E1", hair:"curly", hc:"#0F4C3A", shirt:"#1A1A1A", pants:"#7A1F3D", shoes:"#FFB547", mood:"smug", acc:["shades","coin"]},
+   quote:"Same pitch deck. I just did find-and-replace on \"blockchain\".",
+   hidden:"Has never run anything boring and reliable. Allergic to systems that just work.",
+   weak:"systems", immune:"growth",
+   exit:"35% fewer tickets with a rules engine? No token? No airdrop? ...This is too real for me.",
+   bounce:"Community? I had a Discord with 80K members. 79K were bots, but still."},
+  {id:"tanvi", name:"Tanvi", title:"Prompt Engineer", tag:"",
+   look:{skin:"#FFC48A", hair:"long", hc:"#1A1A1A", shirt:"#0F4C3A", pants:"#E9D8FB", shoes:"#FF6B4A", acc:["tabs"]},
+   quote:"One of my 40 ChatGPT tabs definitely knows how to do this job.",
+   hidden:"Has prompted a hundred apps. Has deployed none of them.",
+   weak:"build", immune:"ops",
+   exit:"8,000 SKUs, live in production, and it made money? ...Closing all 40 tabs.",
+   bounce:"Factory yield? I'll just ask tab 27 to optimise it."}
+];
+
+const YOU = {name:"Harsha", title:"That's you", look:{custom:"harsha"}};
+
+const SHRUGS = [
+  "{n} nods politely and stays exactly where they are.",
+  "{n}: \"Cool story.\" Does not move an inch.",
+  "{n} checks their phone. Completely unbothered.",
+  "{n}: \"Interesting. Anyway.\""
+];
+
+const LESSONS = [
+  {where:"UrbanPiper", title:"Shipping is the easy half",
+   text:"When we rolled out PRISM, I assumed giving teams control over the rules would be enough. It wasn't. Adoption lagged and regional teams kept routing issues back to support. So I sat with the agents through real menu pushes, rewrote the docs around what they actually hit, and added in-product explanations of why a menu got flagged. That's when tickets started dropping. Shipping the feature is the easy half. Getting people to trust it is the real work."}
+];
+
+
+/* ---------- Boss level + Free Play content ---------- */
+
+// The three panelists (generic roles, never real people)
+const PANEL = [
+  {id:"growth", role:"Growth Lead", look:{skin:"#FFC48A", hair:"long", hc:"#7A1F3D", shirt:"#FF6B4A", pants:"#1A1A1A", shoes:"#fff", acc:["glasses"]},
+   q:"We hire for growth. Show me something you grew from zero.", key:"growth",
+   right:"A dying chapter to 30 members, with no budget. Okay. That's growth.",
+   wrong:"Good, but that's not growth from zero."},
+  {id:"partners", role:"Partnerships Lead", look:{skin:"#E9D8FB", hair:"short", hc:"#0F4C3A", shirt:"#FFB547", pants:"#0F4C3A", shoes:"#fff", acc:[]},
+   q:"Partnerships is the job. Have you actually run partners, not just pitched them?", key:"partnerships",
+   right:"Ten aggregators across four regions, and they kept replying. Noted.",
+   wrong:"Solid, but that's not partnerships."},
+  {id:"founder", role:"Founder", look:{skin:"#FFF3D6", hair:"short", hc:"#1A1A1A", shirt:"#1A1A1A", pants:"#7A1F3D", shoes:"#FFB547", mood:"smug", acc:[]},
+   q:"Everyone in that line has experience. Some have a lot more than you. Why you?", key:"lines",
+   right:"",
+   wrong:"That's experience. Plenty of people out there have more of it."}
+];
+const LINES_CARD = {id:"lines", type:"special", title:"I've been thinking about lines", short:"Not a card from my past. A pitch for what's next.", where:"The real answer"};
+
+// Comedy cards for generated lines
+const GAG = {
+  prank:   {title:"Prank Call", short:"Their phone rings. It's \"Mom\".", c:"#D9472A"},
+  prod:    {title:"\"Prod Is Down\"", short:"A fake call from their manager.", c:"#2F64B0"},
+  celeb:   {title:"Celebrity Sighting", short:"\"Isn't that someone famous on Church Street?\"", c:"#C03A82"},
+  light:   {title:"Terrible Lighting", short:"\"The light is awful for photos today.\"", c:"#A8690B"},
+  nextdoor:{title:"Place Next Door", short:"\"Next door has no line, and it's better.\"", c:"#0F6B52"},
+  crypto:  {title:"Explain Crypto", short:"Start a ten-minute talk on staking.", c:"#7A3FB0"},
+  rain:    {title:"Summon Rain", short:"It's Bengaluru. It was always going to rain.", c:"#2F64B0"},
+  soldout: {title:"Sold Out in Your Size", short:"\"They just ran out of the medium.\"", c:"#D9472A"},
+  resale:  {title:"Resale Price Crashed", short:"\"Resale on this drop just tanked.\"", c:"#7A3FB0"},
+  eggs:    {title:"Benedict Is Over", short:"\"Kitchen just ran out of eggs Benedict.\"", c:"#A8690B"},
+  wifi:    {title:"No Wi-Fi Here", short:"\"They took the Wi-Fi password down.\"", c:"#0F6B52"},
+  ex:      {title:"Your Ex Is Inside", short:"\"Don't look. Your ex is at the bar.\"", c:"#C03A82"},
+  ipl:     {title:"Last Over Alert", short:"\"Six needed off the last over!\"", c:"#D9472A"}
+};
+const GAG_EXITS = {
+  prank:["{n} picks up. \"Hello? Mom?\" ...and wanders off, still talking.","{n} answers, says \"Wait, WHAT?\" and leaves at speed."],
+  prod:["{n} goes pale, opens a laptop on the pavement, and is gone.","{n}: \"On my way to the war room.\" Gone."],
+  celeb:["{n} sprints toward Church Street. There is no celebrity. {n} is not coming back.","{n}: \"WHERE?\" ...and that was the last we saw of {n}."],
+  light:["{n} squints at the sky and leaves to \"come back at golden hour\".","{n}: \"No content today then.\" Leaves."],
+  nextdoor:["{n}: \"Wait, next door has no line?\" Gone.","{n} is already next door, ordering."],
+  crypto:["Three minutes into staking, {n} quietly steps out of the line.","{n} fakes a phone call to escape your crypto talk."],
+  rain:["First drop of rain. {n} is already in an auto.","{n} sees the clouds and is gone before the thunder."],
+  soldout:["{n} hears \"sold out\" and leaves to rage-post about it.","{n}: \"Not in my size? I'm done.\""],
+  resale:["{n} checks the resale app, sees the price crash, and walks off.","{n}: \"If I can't flip it, why am I standing here?\" Gone."],
+  eggs:["{n}: \"No Benedict? Then why am I even here?\" Gone.","{n} mourns the eggs Benedict and leaves."],
+  wifi:["{n} sees the Wi-Fi sign is gone and packs up instantly.","{n}: \"No Wi-Fi? How do I work then?\" Leaves."],
+  ex:["{n} spots \"the ex\" and vanishes faster than an auto in the rain.","{n}: \"Absolutely not.\" Gone."],
+  ipl:["{n} hears \"last over\" and runs to the nearest TV.","{n}: \"SIX NEEDED?\" Gone to watch."]
+};
+
+// Moods randomly layered on top of an archetype
+const MOODS = [
+  {tag:"on a call", weak:"prod"},
+  {tag:"phone at 2%", weak:"prank"},
+  {tag:"hangry", weak:"nextdoor"},
+  {tag:"forgot an umbrella", weak:"rain"},
+  {tag:"very patient", immune:"nextdoor"},
+  {tag:"unbothered", immune:"prank"}
+];
+
+const FEMALE_NAMES = ["Ishita","Megha","Nandini","Lavanya","Deepa","Shreya","Bhavana","Keerthi","Pallavi","Ramya","Swathi","Aishwarya","Chaitra","Varsha","Rachana",
+  "Zainab","Merin","Lakshmi","Ayesha","Sowmya","Trisha","Bhumika","Gayathri","Sana","Poornima"];
+const MALE_NAMES = ["Aarav","Rohit","Sameer","Pranav","Harish","Gautam","Vivek","Anirudh","Suhas","Naveen","Karthik","Tarun","Mohan","Sahil","Tejas","Abhishek",
+  "Farhan","Joel","Sanjay","Imran","Neeraj","Raghav","Akhil","Dhruv","Ritwik","Yusuf"];
+const FIRST_NAMES = [...FEMALE_NAMES, ...MALE_NAMES, "Kiran"];
+// Archetypes with g:"f" or g:"m" only get names from that pool
+
+// Each line: theme ("window dressing"), twist, deck and archetypes.
+// Archetype order matters: the first 6 appear in the boss rounds, all 8 in Free Play.
+const LINES = {
+  store: {
+    id:"store", brand:"Fit Check", what:"Streetwear store", tagline:"Drop day: the oversized tee, Vol. 2", live:"Drop is live", shortLive:"Drop",
+    prize:"a free hoodie from the drop", twist:"stock", theme:"store",
+    blurb:"A streetwear brand's drop day. Stock runs out every turn.",
+    deck:["prank","prod","celeb","light","nextdoor","crypto","rain","soldout","resale"],
+    archetypes:[
+      {k:"reseller", title:"Reseller", hair:"cap", acc:["phone"], weak:["resale","prod"], immune:["light","soldout"],
+       quote:"I'm not here for me. I'm here for my 14 customers on Instagram.", hidden:"Only here to flip it. And flipping is a side hustle, so their day job keeps pinging them.",
+       bounce:"Lighting? Bro, I'm not posting it, I'm SELLING it."},
+      {k:"vlogger", title:"Fashion Vlogger", hair:"long", acc:["phone"], weak:["light","rain"], immune:["prank"],
+       quote:"Hey guys, day three of waiting for this tee. Smash that like.", hidden:"Needs perfect light and a dry lens. Nothing else matters.",
+       bounce:"A prank call? Perfect. That's content."},
+      {k:"nri", title:"NRI Cousin", hair:"short", acc:["shades"], weak:["nextdoor","crypto"], immune:["soldout"],
+       quote:"In London this line would have a playlist.", hidden:"Comparing everything to somewhere else. Easily tempted by a better option.",
+       bounce:"Sold out? I'll just buy it in London."},
+      {k:"merch", title:"Corporate Merch Buyer", hair:"bun", acc:["tablet","glasses"], weak:["prod","soldout"], immune:["light"],
+       quote:"I need 400 hoodies by Friday. Is that a problem?", hidden:"Lives in fear of their manager and of stockouts.",
+       bounce:"Lighting? I'm buying 400 hoodies, not taking selfies."},
+      {k:"couple", title:"Matching-Outfit Couple", hair:"long", acc:["glasses"], weak:["light","prank"], immune:["crypto"],
+       quote:"We're buying matching hoodies. It's a whole thing.", hidden:"Here for the couple post. Bad light ruins everything.",
+       bounce:"Crypto? We met at a crypto meetup. Try again."},
+      {k:"hypebeast", title:"Hypebeast", hair:"cap", acc:["shades"], weak:["soldout","resale"], immune:["rain"],
+       quote:"If it's not limited edition, is it even a tee?", hidden:"Only cares about hype. If it sells out or the resale tanks, they're gone.",
+       bounce:"Rain? The jacket's waterproof. That's literally the point."},
+      {k:"tryon", title:"Live Try-On Influencer", hair:"bun", acc:["phone"], weak:["light","celeb"], immune:["prank"],
+       quote:"We're live! Trying on everything! Hi Mom!", hidden:"Will chase anything more watchable than a queue.",
+       bounce:"A prank call, live? Chat is going to love this."},
+      {k:"dad", g:"m", title:"Dad Who Wants a Plain Tee", hair:"short", acc:["mustache","glasses"], weak:["crypto","nextdoor"], immune:["celeb"],
+       quote:"I just want one plain T-shirt. Why is there a DJ?", hidden:"Zero patience for nonsense. Will happily go somewhere simpler.",
+       bounce:"Celebrity? I don't know any of them."}
+    ]
+  },
+  cafe: {
+    id:"cafe", brand:"Benne & Brew", what:"Cafe", tagline:"Sunday brunch · 45 min wait", live:"Now seating", shortLive:"Seating",
+    prize:"brunch for two on the house", twist:"cutin", theme:"cafe",
+    blurb:"The hyped brunch spot. Someone's friend always \"saved a spot\".",
+    deck:["prank","prod","celeb","light","nextdoor","crypto","rain","eggs","wifi"],
+    archetypes:[
+      {k:"techie", title:"On-Call Techie", hair:"short", acc:["laptop"], weak:["prod","wifi"], immune:["celeb"],
+       quote:"I'm off today. Technically. Spiritually I'm in a Slack thread.", hidden:"Pager is always on. Panics without Wi-Fi.",
+       bounce:"A celebrity? I wouldn't recognise one. I've been in standups since 2019."},
+      {k:"foodie_ig", title:"Food Influencer", hair:"long", acc:["phone"], weak:["light","eggs"], immune:["nextdoor"],
+       quote:"I'm only here for the Benedict reel. Everything else is B-roll.", hidden:"Needs the signature dish and the right light.",
+       bounce:"Next door? Next door isn't trending."},
+      {k:"squatter", title:"Laptop Squatter", hair:"bun", acc:["laptop","glasses"], weak:["wifi","rain"], immune:["eggs"],
+       quote:"I'll order one black coffee and stay till dinner.", hidden:"Here for the Wi-Fi and the plug point. The food is irrelevant.",
+       bounce:"Eggs? I only ever order the black coffee."},
+      {k:"foodie", title:"Serious Foodie", hair:"short", acc:["glasses"], weak:["eggs","nextdoor"], immune:["crypto"],
+       quote:"The hollandaise here is emulsified in a copper bowl. By hand.", hidden:"Only here for one dish. Easily lured by a better kitchen.",
+       bounce:"Crypto? I only invest in sourdough starters."},
+      {k:"organiser", title:"Brunch Organiser", hair:"long", acc:["phone"], weak:["rain","prank"], immune:["light"],
+       quote:"Table for nine. Two are \"on the way\". Four are \"maybe\".", hidden:"Barely holding the group together. One more problem and it collapses.",
+       bounce:"Lighting? Boss, I'm just trying to get nine people seated."},
+      {k:"aunties", g:"f", title:"Book-Club Aunty", hair:"bun", acc:["glasses"], weak:["celeb","rain"], immune:["crypto"],
+       quote:"We are discussing the novel. We have not read the novel.", hidden:"Loves a celebrity and hates getting her hair wet.",
+       bounce:"Crypto? Beta, my nephew already explained it. We are invested."},
+      {k:"founder", title:"Founder Pitching at Brunch", hair:"short", acc:["tablet"], weak:["prod","celeb"], immune:["crypto"],
+       quote:"It's like Swiggy, but for brunch, but on-chain.", hidden:"Drops everything for an outage or a famous investor.",
+       bounce:"Explain crypto? Please. I'll explain it to YOU."},
+      {k:"dogparent", title:"Dog Parent", hair:"long", acc:[], weak:["rain","nextdoor"], immune:["prank"],
+       quote:"Is this place dog-friendly? He's a golden retriever. He's friendly.", hidden:"Will go wherever the dog is welcome and dry.",
+       bounce:"A prank call? I don't pick up unknown numbers. Only the vet."}
+    ]
+  },
+  bar: {
+    id:"bar", brand:"Last Call Taproom", what:"Trendy bar", tagline:"Friday night · Happy hour till 8", live:"Happy hour", shortLive:"HH",
+    prize:"the first round on the house (21+)", twist:"happyhour", theme:"bar",
+    blurb:"A Friday-night taproom. Happy hour ends, and every move costs double.",
+    deck:["prank","prod","celeb","light","nextdoor","crypto","rain","ex","ipl"],
+    archetypes:[
+      {k:"bday", title:"Birthday Crew", hair:"cap", acc:["phone"], weak:["nextdoor","celeb"], immune:["rain"],
+       quote:"It's Rohan's birthday. Rohan isn't even here yet.", hidden:"Will move the party anywhere more exciting.",
+       bounce:"Rain? It's a birthday. We're getting wet either way."},
+      {k:"iplfans", title:"IPL Superfan", hair:"short", acc:[], weak:["ipl","nextdoor"], immune:["crypto"],
+       quote:"Is the match on inside? If the match isn't on, I'm not going in.", hidden:"Lives and dies by the score. Anything showing the match wins.",
+       bounce:"Crypto? I lost enough on fantasy cricket, thanks."},
+      {k:"raised", title:"Founders Who Just Raised", hair:"short", acc:["shades"], weak:["prod","crypto"], immune:["nextdoor"],
+       quote:"We just closed our seed. Drinks are on the cap table.", hidden:"One outage away from leaving. Also, deeply tired of crypto.",
+       bounce:"Next door? We're celebrating HERE, it's on the pitch deck."},
+      {k:"firstdate", title:"First Date", hair:"long", acc:["glasses"], weak:["ex","light"], immune:["ipl"],
+       quote:"So... do you also like... drinks?", hidden:"Nervous. One awkward surprise and they're out.",
+       bounce:"Cricket? I'm on a date, I don't care about cricket. Do I? Should I?"},
+      {k:"offsite", title:"Office Offsite", hair:"bun", acc:["lapels","tablet"], weak:["prod","rain"], immune:["celeb"],
+       quote:"This is a mandatory fun event. Attendance is being tracked.", hidden:"Will leave the second work or weather calls.",
+       bounce:"A celebrity? Our CEO thinks HE is the celebrity."},
+      {k:"onedrink", g:"m", title:"\"Just One Drink\" Guy", hair:"short", acc:["phone"], weak:["ex","ipl"], immune:["light"],
+       quote:"Just one drink. Then home. Promise.", hidden:"Already looking for an excuse to leave. Or to stay.",
+       bounce:"Lighting? Bro, it's a bar. It's supposed to be dark."},
+      {k:"bachelor", g:"m", title:"Bachelor Party", hair:"cap", acc:["shades"], weak:["prank","celeb"], immune:["ex"],
+       quote:"Last night of freedom! Also we have to be home by 11.", hidden:"Chaotic. Easily distracted by anything shiny.",
+       bounce:"His ex? Bro, that's literally why we're here."},
+      {k:"guitar", g:"m", title:"Guy Who Brought a Guitar", hair:"long", acc:[], weak:["rain","prank"], immune:["ipl"],
+       quote:"Does anyone mind if I play Wonderwall? Just once?", hidden:"Protective of the guitar. Rain is his enemy.",
+       bounce:"Cricket? Music is my sport."}
+    ]
+  }
+};
+const LINE_ORDER = ["store","cafe","bar"];
+
+// Palettes for generated people (Wispr-style pastels)
+const SKINS = ["#FFF3D6","#E9D8FB","#FFC48A","#F7B9E1","#FFE0B8","#F4A261"];
+const HAIRC = ["#1A1A1A","#7A1F3D","#0F4C3A","#5a3a2a","#2F64B0"];
+const SHIRTS = ["#FF6B4A","#FFB547","#E9D8FB","#F7B9E1","#0F4C3A","#7A1F3D","#FFD23F","#9fd3b8","#2F64B0"];
+const PANTS = ["#1A1A1A","#0F4C3A","#7A1F3D","#CDB68E","#4A6FA5","#E9D8FB"];
+const SHOES = ["#fff","#FFB547","#FF6B4A","#1A1A1A"];
+
+/* ---------- Avatar generator (reused for procedural rivals later) ---------- */
+const INK = "#1f1b16";
+function harshaClassic(mood){
+  const s = `stroke="${INK}" stroke-width="2"`, hair = "#1a1414", red = "#d1332e", skin = "#c68b5e";
+  const sad = mood === "sad";
+  const face = sad
+    ? `<circle cx="25" cy="26.5" r="1.6" fill="${INK}"/><circle cx="35" cy="26.5" r="1.6" fill="${INK}"/>
+       <path d="M22 23.5 L27 21.8 M38 23.5 L33 21.8" stroke="${INK}" stroke-width="1.6" stroke-linecap="round"/>
+       <path d="M26 33.5 Q30 30 34 33.5" fill="none" stroke="${INK}" stroke-width="1.7" stroke-linecap="round"/>
+       <path class="tear" d="M23.6 29 q-1.7 3.2 0 4.6 q1.7 -1.4 0 -4.6Z" fill="#7fd0ff" stroke="#2a7fc0" stroke-width=".8"/>
+       <path class="tear t2" d="M36.4 29 q-1.7 3.2 0 4.6 q1.7 -1.4 0 -4.6Z" fill="#7fd0ff" stroke="#2a7fc0" stroke-width=".8"/>`
+    : `<path d="M22.7 26.5 q2.3 -2.6 4.6 0 M32.7 26.5 q2.3 -2.6 4.6 0" fill="none" stroke="${INK}" stroke-width="1.7" stroke-linecap="round"/>
+       <path d="M24.5 30.2 Q30 37.5 35.5 30.2 Z" fill="#fff" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/>`;
+  const mic = sad ? "" : `<rect x="45" y="33" width="8" height="13" rx="4" fill="#2a2a35" ${s}/><path d="M49 46v9" stroke="${INK}" stroke-width="2"/><path d="M7 19 q-4 4 0 8M3 16 q-6 7 0 14" fill="none" stroke="#e4572e" stroke-width="1.8" stroke-linecap="round"/>`;
+  return `<svg viewBox="0 0 60 92" aria-hidden="true">
+    <ellipse cx="30" cy="89" rx="17" ry="3" fill="rgba(0,0,0,.14)"/>
+    <rect x="19" y="68" width="9" height="20" rx="3" fill="#2a2a35" ${s}/>
+    <rect x="32" y="68" width="9" height="20" rx="3" fill="#2a2a35" ${s}/>
+    <path d="M14 35 C8 31 7.5 21 12.5 14 C17 6 26 3 33 4.5 C43 6 51 13 50.5 23 C53 28 51 34.5 46.5 35.5 C47.5 31.5 45.5 28.5 43 27.5 L17 27.5 C15 29.5 15.5 32.5 14 35Z" fill="${hair}" ${s}/>
+    <path d="M14 34.5 C11 37 8 35.5 8.5 32 M46.5 35.5 C49.5 37.5 52.5 35.5 52 32" fill="none" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>
+    <rect x="12" y="38" width="36" height="36" rx="11" fill="#1c1c20" ${s}/>
+    <path d="M19 39.5 C22 47 38 47 41 39.5" fill="none" stroke="#4a4a52" stroke-width="3" stroke-linecap="round"/>
+    <path d="M26 45 v8 M34 45 v8" stroke="#f2f2f2" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M19 63 h22" stroke="#4a4a52" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="30" cy="25" r="13" fill="${skin}" ${s}/>
+    <path d="M18.5 28 C19.5 37 25 39.5 30 39.5 C35 39.5 40.5 37 41.5 28 C38 33 34 34.5 30 34.5 C26 34.5 22 33 18.5 28Z" fill="#3b2a22" opacity=".35"/>
+    <path d="M16.5 26 C15 15 22 8.5 31 8.5 C40 8.5 46.5 14 44.5 23 C42 17 37 13.8 31 14.8 C26 15.8 22 19.5 19.5 25.5 C18.8 27 17 27.2 16.5 26Z" fill="${hair}" ${s}/>
+    <g fill="none" stroke="${red}" stroke-width="1.5" stroke-linecap="round">
+      <path d="M28 10 C25.5 13 22.5 16.5 20.5 21.5"/><path d="M35 9.8 C32.5 11.6 29.5 12.8 26.5 13.8"/>
+      <path d="M40.5 11.5 C42.6 13.8 43.8 16.5 44 19.5"/>
+      <path d="M10.2 27.5 C9.8 30.5 10.8 33 12.8 34.3"/><path d="M50 27.5 C50.4 30.5 49.4 33 47.4 34.3"/>
+    </g>
+    ${face}${mic}
+  </svg>`;
+}
+function avatarClassic(L){
+  if(L.custom === "harsha") return harshaClassic(L.mood);
+  const s = `stroke="${INK}" stroke-width="2"`;
+  const acc = L.acc || [];
+  let back = "", front = "", hand = "";
+  if(L.hair==="long") back += `<rect x="15" y="14" width="30" height="30" rx="13" fill="${L.hc}" ${s}/>`;
+  let hair = "";
+  const cap = `<path d="M17 23 C16 8 44 8 43 23 C39 16 21 16 17 23Z" fill="${L.hc}" ${s}/>`;
+  if(L.hair==="short"||L.hair==="long") hair = cap;
+  if(L.hair==="bun") hair = `<circle cx="30" cy="8" r="5.5" fill="${L.hc}" ${s}/>` + cap;
+  if(L.hair==="curly") hair = [18,24,30,36,42].map((x,i)=>`<circle cx="${x}" cy="${i%2?12:15}" r="5.5" fill="${L.hc}" ${s}/>`).join("");
+  if(L.hair==="cap") hair = `<path d="M16 21 C16 6 44 6 44 21Z" fill="${L.hc}" ${s}/><rect x="38" y="18" width="14" height="4" rx="2" fill="${L.hc}" ${s}/>`;
+  if(acc.includes("lapels")) front += `<path d="M22 39 L30 55 L38 39" fill="none" ${s}/><path d="M30 55 L30 72" stroke="${INK}" stroke-width="1.5"/>`;
+  if(acc.includes("glasses")) front += `<g fill="none" stroke="${INK}" stroke-width="1.6"><circle cx="25" cy="25" r="3.8"/><circle cx="35" cy="25" r="3.8"/><path d="M28.8 25h2.4"/></g>`;
+  if(acc.includes("shades")) front += `<rect x="20.5" y="22" width="8.5" height="5.5" rx="2" fill="${INK}"/><rect x="31" y="22" width="8.5" height="5.5" rx="2" fill="${INK}"/><path d="M29 24h2" stroke="${INK}" stroke-width="1.5"/>`;
+  if(acc.includes("phone")) hand += `<rect x="44" y="38" width="9" height="14" rx="2" fill="#26282c" ${s}/><rect x="46" y="40.5" width="5" height="8" rx="1" fill="#8fd3ff"/>`;
+  if(acc.includes("laptop")) hand += `<rect x="9" y="51" width="30" height="18" rx="2.5" fill="#cfd6dd" ${s}/><circle cx="24" cy="60" r="2.2" fill="#fff"/>`;
+  if(acc.includes("board")) hand += `<rect x="37" y="34" width="22" height="22" rx="1.5" fill="#fff" ${s}/><path d="M48 36v18M39 45h18" stroke="${INK}" stroke-width="1.4"/><circle cx="53" cy="40" r="2.2" fill="#e4572e"/><circle cx="42" cy="51" r="2.2" fill="#3d6cb9"/>`;
+  if(acc.includes("coin")) hand += `<circle cx="48" cy="54" r="7.5" fill="#f2b134" ${s}/><text x="48" y="57.5" font-size="9.5" font-weight="800" text-anchor="middle" fill="${INK}" font-family="Inter,sans-serif">B</text>`;
+  if(acc.includes("tabs")) hand += `<rect x="37" y="42" width="18" height="13" rx="2" fill="#fff" ${s}/><rect x="40" y="46" width="18" height="13" rx="2" fill="#fff" ${s}/><text x="49" y="56" font-size="7.5" font-weight="800" text-anchor="middle" fill="${INK}" font-family="Inter,sans-serif">40</text>`;
+  if(acc.includes("mic")) hand += `<rect x="45" y="33" width="8" height="13" rx="4" fill="#2a2a35" ${s}/><path d="M49 46v9" stroke="${INK}" stroke-width="2"/><path d="M8 20 q-4 4 0 8M4 17 q-6 7 0 14" fill="none" stroke="#e4572e" stroke-width="1.8" stroke-linecap="round"/>`;
+  return `<svg viewBox="0 0 60 92" aria-hidden="true">
+    <ellipse cx="30" cy="89" rx="17" ry="3" fill="rgba(0,0,0,.14)"/>
+    <rect x="19" y="68" width="9" height="20" rx="3" fill="${L.pants}" ${s}/>
+    <rect x="32" y="68" width="9" height="20" rx="3" fill="${L.pants}" ${s}/>
+    ${back}
+    <rect x="12" y="38" width="36" height="36" rx="11" fill="${L.shirt}" ${s}/>
+    <circle cx="30" cy="25" r="13" fill="${L.skin}" ${s}/>
+    ${hair}
+    <circle cx="25" cy="25.5" r="1.6" fill="${INK}"/><circle cx="35" cy="25.5" r="1.6" fill="${INK}"/>
+    <path d="M26 31 Q30 34 34 31" fill="none" stroke="${INK}" stroke-width="1.6" stroke-linecap="round"/>
+    ${front}${hand}
+  </svg>`;
+}
+
+
+/* Wispr-style illustration avatars (Level 1): flat pastel fills, ink outlines, line-drawn faces */
+const K = (w=1.8) => `stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+function wBody(L, opts={}){
+  const k = K();
+  const arm = (d) => `<path d="${d}" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${L.shirt}" stroke-width="4" stroke-linecap="round"/>`;
+  return `
+    <path d="M17 70 L18.5 88 L28.5 88 L30 77 L31.5 88 L41.5 88 L43 70Z" fill="${L.pants}" ${k}/>
+    <path d="M16.5 91 L16.5 88.5 C16.5 86.5 19 86 22 86.5 L29 87 L29 91Z" fill="${L.shoes||"#fff"}" ${k}/>
+    <path d="M31 91 L31 87 L38 86.5 C41 86 43.5 86.5 43.5 88.5 L43.5 91Z" fill="${L.shoes||"#fff"}" ${k}/>
+    ${arm(opts.armL || "M16.5 46 C12.5 53 12 60 13.5 66")}
+    ${arm(opts.armR || "M43.5 46 C47.5 53 48 60 46.5 66")}
+    <path d="M13 72 L14.5 47 C15 41 21 38.5 30 38.5 C39 38.5 45 41 45.5 47 L47 72Z" fill="${L.shirt}" ${k}/>
+    ${opts.noHL ? "" : `<circle cx="13.8" cy="67.5" r="2.5" fill="${L.skin}" ${k}/>`}
+    <path d="M25.5 34 L25.5 39.5 C28 41 32 41 34.5 39.5 L34.5 34" fill="${L.skin}" ${k}/>`;
+}
+function wHead(L){
+  const k = K();
+  return `<path d="M18 22 C18 13 23.5 8.5 30 8.5 C37 8.5 42 13 42 22 C42 30.5 37 36 30 36 C23 36 18 30.5 18 22Z" fill="${L.skin}" ${k}/>
+    <path d="M41.6 20.5 C44.8 19.8 45.2 25.4 41.6 25.8" fill="${L.skin}" ${k}/>`;
+}
+function wFace(mood){
+  const k = K(1.5);
+  const nose = `<path d="M30.5 22.5 L28.6 27.6 L31.4 27.6" fill="none" ${k}/>`;
+  if(mood === "sad") return `<circle cx="25" cy="22.5" r="1.3" fill="${INK}"/><circle cx="35" cy="22.5" r="1.3" fill="${INK}"/>
+    <path d="M22.5 19.5 L26.8 18 M37.5 19.5 L33.2 18" fill="none" ${k}/>${nose}
+    <path d="M26.5 32 Q30 29.2 33.5 32" fill="none" ${k}/>
+    <path class="tear" d="M24.3 25.2 q-1.6 3 0 4.3 q1.6 -1.3 0 -4.3Z" fill="#9fdcff" stroke="#2a7fc0" stroke-width=".8"/>
+    <path class="tear t2" d="M35.7 25.2 q-1.6 3 0 4.3 q1.6 -1.3 0 -4.3Z" fill="#9fdcff" stroke="#2a7fc0" stroke-width=".8"/>`;
+  if(mood === "grin") return `<path d="M22.8 22.8 q2.2 -2.4 4.4 0 M32.8 22.8 q2.2 -2.4 4.4 0" fill="none" ${k}/>${nose}
+    <path d="M25.5 30 Q30 35.5 34.5 30 Z" fill="#fff" ${k}/>`;
+  if(mood === "smug") return `<path d="M23 22.5 h4 M33 22.5 h4" fill="none" ${k}/><path d="M22.5 19 q2.5 -1.6 5 0 M32.5 19.6 q2.5 -1 5 -.2" fill="none" ${k}/>${nose}
+    <path d="M26 31 Q30 32.5 34 30" fill="none" ${k}/>`;
+  return `<circle cx="25" cy="22.3" r="1.3" fill="${INK}"/><circle cx="35" cy="22.3" r="1.3" fill="${INK}"/>
+    <path d="M22.8 18.8 q2.2 -1.3 4.4 0 M32.8 18.8 q2.2 -1.3 4.4 0" fill="none" ${k}/>${nose}
+    <path d="M26.5 30.6 Q30 32.8 33.5 30.6" fill="none" ${k}/>`;
+}
+function wHair(L, layer){
+  const k = K(), hc = L.hc;
+  if(L.hair === "long" && layer === "back") return `<path d="M17.5 18 C15 30 15.5 40 12.5 47 C17 48.5 21 47 23.5 44 L22 28Z M42.5 18 C45 30 44.5 40 47.5 47 C43 48.5 39 47 36.5 44 L38 28Z" fill="${hc}" ${k}/>`;
+  if(L.hair === "bun" && layer === "back") return `<circle cx="31" cy="6" r="5" fill="${hc}" ${k}/><path d="M28.6 6.2 q1.2 -1.6 2.4 0 t2.4 0" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/>`;
+  if(layer === "back") return "";
+  if(L.hair === "short") return `<path d="M17.6 21 C16 11 23 6 31 6.5 C38.5 7 43.6 12 42.6 20 C40 15.5 36 13.4 31 14 C27 14.5 24.5 17 21 17.6 C19.6 17.8 18.6 19 17.6 21Z" fill="${hc}" ${k}/>`;
+  if(L.hair === "long" || L.hair === "bun") return `<path d="M17.6 22 C16 11 23 6.2 30 6.4 C37 6.2 44 11 42.4 22 C40.5 15.5 35 12.6 30 12.6 C25 12.6 19.6 15.5 17.6 22Z" fill="${hc}" ${k}/>`;
+  if(L.hair === "curly") return [[19,13],[24,8.5],[30,7],[36,8.5],[41,13],[17.5,19],[42.5,19]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5.4" fill="${hc}" ${k}/>`).join("")
+    + `<g fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round"><path d="M22 9 q1.5 -2 3 0"/><path d="M33 7.5 q1.5 -2 3 0"/><path d="M39.5 13.5 q1.5 -2 3 0"/></g>`;
+  if(L.hair === "cap") return `<path d="M17 18 C17 6 43 6 43 18Z" fill="${hc}" ${k}/><path d="M38 17.5 L51 17.5 C51 20 48 21 44 20.6 L38 20Z" fill="${hc}" ${k}/><path d="M30 8 v9" fill="none" stroke="${INK}" stroke-width="1.2"/>`;
+  return "";
+}
+function wAcc(L){
+  const k = K(), acc = L.acc || [];
+  let o = "";
+  if(acc.includes("lapels")) o += `<path d="M25 39.5 L30 50 L35 39.5Z" fill="#fff" ${k}/><path d="M23 40 L30 54 L37 40" fill="none" ${k}/>`;
+  if(acc.includes("glasses")) o += `<g fill="none" stroke="#FF6B4A" stroke-width="1.7"><circle cx="25" cy="22.3" r="3.6"/><circle cx="35" cy="22.3" r="3.6"/><path d="M28.6 22.3h2.8"/></g>`;
+  if(acc.includes("shades")) o += `<path d="M20.5 20 h9 v3.5 c0 2.4 -1.8 3.6 -4.5 3.6 c-2.7 0 -4.5 -1.2 -4.5 -3.6Z M30.5 20 h9 v3.5 c0 2.4 -1.8 3.6 -4.5 3.6 c-2.7 0 -4.5 -1.2 -4.5 -3.6Z" fill="${INK}"/>`;
+  if(acc.includes("mustache")) o += `<path d="M25 29.2 C27 27.6 29 27.9 30 28.9 C31 27.9 33 27.6 35 29.2 C33 30.8 31 30.3 30 29.6 C29 30.3 27 30.8 25 29.2Z" fill="${INK}"/>`;
+  if(acc.includes("phone")) o += `<rect x="39.5" y="48" width="12.5" height="20" rx="2.8" fill="${INK}" ${k}/><rect x="41.6" y="50.6" width="8.3" height="12.6" rx="1.2" fill="#E9D8FB"/><path d="M44 65.4h3.5" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>`;
+  if(acc.includes("tablet")) o += `<rect x="35" y="44" width="21" height="27" rx="3.2" fill="${INK}" ${k}/><rect x="37.4" y="46.6" width="16.2" height="20.6" rx="1.4" fill="#fff"/><circle cx="40.6" cy="50" r="1.8" fill="#2F64B0"/><path d="M43.6 49.2h7.4M43.6 51.4h5" stroke="${INK}" stroke-width="1.1" stroke-linecap="round"/><path d="M39 55h12.6M39 57.6h12.6M39 60.2h8.4" stroke="#bdb4a2" stroke-width="1.1" stroke-linecap="round"/><path d="M39.2 63.8 l1.4 -1.4 l1.4 1.4" fill="none" stroke="#2F64B0" stroke-width="1.1"/><circle cx="45.5" cy="69.2" r=".9" fill="#fff"/>`;
+  if(acc.includes("laptop")) o += `<path d="M12.5 52 L44 52 L47 70.5 L15.5 70.5Z" fill="#E9D8FB" ${k}/><circle cx="29.8" cy="61" r="2.6" fill="#fff" ${k}/>`;
+  if(acc.includes("board")) o += `<rect x="36" y="42" width="23" height="23" rx="3" fill="#fff" ${k}/><path d="M47.5 44v19M38 53.5h19" fill="none" stroke="${INK}" stroke-width="1.3"/><circle cx="53" cy="48" r="2.4" fill="#FF6B4A"/><circle cx="42" cy="59" r="2.4" fill="#0F4C3A"/>`;
+  if(acc.includes("coin")) o += `<circle cx="46" cy="58" r="10.5" fill="#FFB547" ${k}/><circle cx="46" cy="58" r="7.4" fill="none" stroke="${INK}" stroke-width="1.1"/><text x="46" y="62.3" font-size="12" font-weight="800" text-anchor="middle" fill="${INK}" font-family="Inter,sans-serif">B</text>`;
+  if(acc.includes("tabs")) o += `<rect x="34" y="45" width="22" height="16" rx="3" fill="#fff" ${k}/><rect x="38" y="50.5" width="22" height="16" rx="3" fill="#F7B9E1" ${k}/><path d="M41 54.5h.1M43.4 54.5h.1M45.8 54.5h.1" stroke="${INK}" stroke-width="1.9" stroke-linecap="round"/><text x="49" y="64.2" font-size="8" font-weight="800" text-anchor="middle" fill="${INK}" font-family="Inter,sans-serif">40</text>`;
+  return o;
+}
+function avatarW(L){
+  const acc = L.acc || [];
+  const holds = acc.some(a => ["phone","coin","board","tabs","tablet"].includes(a));
+  const laptop = acc.includes("laptop");
+  const opts = {};
+  if(holds) opts.armR = "M43.5 46 C47.5 50 48.5 54 46.5 58";
+  if(laptop){ opts.armL = "M16.5 46 C12.5 51 13.5 56 19 59"; opts.armR = "M43.5 46 C47.5 51 46.5 56 41 59"; opts.noHL = true; }
+  const hand2 = (holds || laptop) ? "" : `<circle cx="46.2" cy="67.5" r="2.5" fill="${L.skin}" ${K()}/>`;
+  return `<svg viewBox="0 0 60 94" aria-hidden="true">
+    ${wHair(L,"back")}${wBody(L, opts)}${wHead(L)}${wFace(L.mood)}${wHair(L,"front")}${wAcc(L)}${hand2}
+  </svg>`;
+}
+/* Harsha: long choppy hair with red streaks (falls behind the neck), navy tee, khaki pants, green mic */
+function harshaW(mood){
+  const k = K(), hair = "#1A1A1A", red = "#E2412B", skin = "#F4A261";
+  const sad = mood === "sad";
+  const L = {skin, shirt:"#1F3A6B", pants:"#CDB68E", shoes:"#fff"};
+  const mic = sad ? "" : `<g transform="translate(2.5 1.5) rotate(-12 44 47)">
+      <rect x="41.6" y="41" width="5" height="15.5" rx="2.3" fill="#03504A" ${k}/>
+      <rect x="40.9" y="41.4" width="6.4" height="2.6" rx="1" fill="#FFFDE8" stroke="${INK}" stroke-width="1.2"/>
+      <circle cx="44.1" cy="49" r="1" fill="#FFFDE8"/>
+      <circle cx="44.1" cy="37.2" r="5" fill="#d7dae1" ${k}/>
+      <path d="M40.4 35.6 h7.4 M39.6 38 h9 M40.6 40.3 h7" stroke="${INK}" stroke-width=".8" stroke-linecap="round" opacity=".55"/>
+    </g>`;
+  const waves = sad ? "" : `<g fill="none" stroke="#FF6B4A" stroke-width="1.8" stroke-linecap="round"><path d="M10 25 q-3 3 0 6"/><path d="M6 22.5 q-5 5.5 0 11"/></g>`;
+  return `<svg viewBox="0 0 60 94" aria-hidden="true">
+    <path d="M18 12 C11.5 17 13.5 24 11 29 C9 33 11.5 36 10 40 L11.6 39.6 L10.4 45 L13.6 42.4 L14.4 47.2 L16.8 43.4 L19 46.6 L20.8 42.6 L24.5 44.2 L30 45.4 L35.5 44.2 L39.2 42.6 L41 46.6 L43.2 43.4 L45.6 47.2 L46.4 42.4 L49.6 45 L48.4 39.6 L50 40 C48.5 36 51 33 49 29 C46.5 24 48.5 17 42 12 C37.5 7.5 22.5 7.5 18 12Z" fill="${hair}" ${k}/>
+    ${wBody(L, sad ? {} : {armR:"M43.5 46 C49 49.5 50.5 54 48 56"})}
+    <path d="M24 39.4 Q30 44 36 39.4" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+    ${sad ? `<circle cx="46.2" cy="67.5" r="2.5" fill="${skin}" ${k}/>` : ""}
+    ${wHead({skin})}
+    ${wFace(sad ? "sad" : "grin")}
+    <path d="M16.8 25 C14.5 13 22 5.5 31.5 5.8 C41 6 46.8 12.5 43.2 22.5 L41.6 18.4 L40.2 21.2 L38.6 16.6 L36.4 18.8 L34.8 14.6 L32.2 17 L30.4 14.6 L27.6 17.8 L25.8 16.4 L23.8 20.4 L21.8 19.6 L19.8 24.2Z" fill="${hair}" ${k}/>
+    <path d="M17.6 24.2 C14.6 25.4 13.4 28.6 14.8 31.8" fill="none" stroke="${hair}" stroke-width="3.4" stroke-linecap="round"/>
+    <g fill="none" stroke="${red}" stroke-width="1.6" stroke-linecap="round">
+      <path d="M28.5 7.2 C25 9.5 22.5 13 21 17.5"/><path d="M36.5 7.5 C40 9.5 42 13 42.4 17"/>
+      <path d="M12.8 32.5 C11.6 35.8 13.6 38.4 12.4 42.4"/><path d="M47.2 32.5 C48.4 35.8 46.4 38.4 47.6 42.4"/>
+    </g>
+    <g fill="none" stroke="#4a4a4a" stroke-width="1" stroke-linecap="round">
+      <path d="M16 29 C14.8 33 16.6 36 15.6 40.5"/><path d="M44 29 C45.2 33 43.4 36 44.4 40.5"/><path d="M32 8.2 C30 10 28.5 12 27.6 14.6"/>
+    </g>
+    ${mic}${waves}
+  </svg>`;
+}
+function avatar(L){
+  if(L.custom === "harsha") return harshaW(L.mood);
+  return avatarW(L);
+}
+
+
+/* ================= Engine ================= */
+
+/* ---------- Randomness ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+let rand = mulberry32((Math.random()*2**32)>>>0);
+function shuffle(arr, r=rand){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const pick = (arr, r=rand) => arr[Math.floor(r()*arr.length)];
+const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+
+/* ---------- Storage (optional, never required) ---------- */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("7il."+k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem("7il."+k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ---------- Helpers ---------- */
+const $ = id => document.getElementById(id);
+const ord = n => n + (n%100>=11&&n%100<=13 ? "th" : n%10===1?"st":n%10===2?"nd":n%10===3?"rd":"th");
+const esc = t => String(t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const keyLabel = k => TYPES[k] ? TYPES[k].label : GAG[k] ? GAG[k].title : k;
+const keyColor = k => TYPES[k] ? TYPES[k].c : GAG[k] ? GAG[k].c : "#1A1A1A";
+const tchip = (k, cls="weak") => cls==="weak"
+  ? `<span class="chip weak" style="background:${keyColor(k)};border-color:${keyColor(k)}">${esc(keyLabel(k))}</span>`
+  : `<span class="chip imm" style="color:${keyColor(k)};border-color:${keyColor(k)}">${esc(keyLabel(k))}</span>`;
+const SQUIG = `<svg viewBox="0 0 40 12" aria-hidden="true"><path d="M2 9 c2.5 -8 5.5 -8 4.5 -1.5 c-.6 4 3.5 3.5 4.5 -1 c2 -7 5.5 -7 4.5 -.5 c-.6 4 3.5 3.5 4.5 -1 c2 -7 5.5 -7 4.5 -.5 c-.6 4 3.5 3.5 4.5 -1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+
+/* ---------- Narrators ---------- */
+const NARRATOR = {name:"Security Uncle", title:"Has seen every queue in Indiranagar", look:{skin:"#FFF3D6", hair:"cap", hc:"#0F4C3A", shirt:"#7A1F3D", pants:"#1A1A1A", shoes:"#FFB547", acc:["mustache"]}};
+const HOSTS = {
+  store:{name:"Floor Manager", title:"Fit Check", look:{skin:"#E9D8FB", hair:"bun", hc:"#1A1A1A", shirt:"#0F4C3A", pants:"#1A1A1A", shoes:"#fff", acc:["tablet"]}},
+  cafe:{name:"Host with a Clipboard", title:"Benne & Brew", look:{skin:"#FFC48A", hair:"long", hc:"#7A1F3D", shirt:"#FFF3D6", pants:"#0F4C3A", shoes:"#FF6B4A", acc:["board"]}},
+  bar:{name:"Bouncer", title:"Last Call Taproom", look:{skin:"#F4A261", hair:"short", hc:"#1A1A1A", shirt:"#1A1A1A", pants:"#1A1A1A", shoes:"#fff", acc:["shades"]}}
+};
+
+/* ---------- Story lineup (Level 1) ---------- */
+const fillCode = r => ({...r, tag:r.tag.replace("{CODE}", r.name.toUpperCase()), quote:r.quote.replace("{CODE}", r.name.toUpperCase())});
+let LINEUP = RIVALS.map(fillCode);
+// After the boss level: same people and names, new order
+function remixLineup(){
+  const was = LINEUP.map(r => r.id).join();
+  let next;
+  do { next = shuffle(LINEUP); } while(next.map(r => r.id).join() === was);
+  LINEUP = next;
+}
+
+/* ---------- Procedural people (boss rounds + Free Play) ---------- */
+function genPerson(line, arch, r, used, idx){
+  let name; let tries = 0;
+  const pool = arch.g === "f" ? FEMALE_NAMES : arch.g === "m" ? MALE_NAMES : FIRST_NAMES;
+  do { name = pick(pool, r); tries++; } while(used.has(name) && tries < 60);
+  used.add(name);
+  const weak = arch.weak.slice(), immune = arch.immune.slice();
+  let tag = "";
+  if(r() < 0.5){
+    const m = pick(MOODS, r);
+    if(m.weak && !weak.includes(m.weak) && !immune.includes(m.weak)) weak.push(m.weak);
+    if(m.immune && !weak.includes(m.immune) && !immune.includes(m.immune)) immune.push(m.immune);
+    tag = m.tag;
+  }
+  return {
+    id:`${line.id}-${idx}-${name}`, name, title:arch.title, tag, gen:true, arch:arch.k,
+    look:{skin:pick(SKINS,r), hair:arch.hair, hc:pick(HAIRC,r), shirt:pick(SHIRTS,r), pants:pick(PANTS,r), shoes:pick(SHOES,r), acc:arch.acc, mood: r()<.3 ? "smug" : undefined},
+    quote:arch.quote, hidden:arch.hidden, weak, immune, bounce:arch.bounce, group:null, leader:false
+  };
+}
+function genLine(line, count, r, {poolSize=6, groups=false}={}){
+  const pool = line.archetypes.slice(0, poolSize);
+  const used = new Set();
+  let bag = [];
+  const people = [];
+  for(let i=0;i<count;i++){
+    if(!bag.length) bag = shuffle(pool, r);
+    people.push(genPerson(line, bag.pop(), r, used, i));
+  }
+  if(groups && count >= 5){
+    const size = r() < 0.5 ? 2 : 3;
+    const start = 1 + Math.floor(r() * (count - size - 1));
+    const gid = "g1";
+    const leader = people[start];
+    for(let i=start;i<start+size;i++){
+      people[i].group = gid;
+      if(i === start){ people[i].leader = true; people[i].tag = `group of ${size}`; }
+      else people[i].tag = `with ${leader.name}`;
+    }
+  }
+  return {people, used};
+}
+
+/* ---------- Scene dressing ---------- */
+const DECO = {
+  story: `
+    <svg class="deco squig" viewBox="0 0 80 20"><path d="M3 14 c4 -12 9 -12 7 -2 c-1 6 5 5 7 -2 c3 -10 9 -10 7 -1 c-1 6 5 5 7 -2 c3 -10 9 -10 7 -1 c-1 6 5 5 7 -2 c3 -10 9 -10 7 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <svg class="deco squig2" viewBox="0 0 60 16"><path d="M2 8 q6 -8 12 0 t12 0 t12 0 t12 0 t8 -2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <svg class="deco stars" viewBox="0 0 48 30"><g stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"><path d="M10 4v10M5 9h10"/><path d="M36 14v8M32 18h8"/></g><circle cx="24" cy="6" r="2.2" fill="#F7B9E1" stroke="#1A1A1A" stroke-width="1.2"/></svg>
+    <svg class="deco cloud" viewBox="0 0 100 46"><path d="M14 42 C3 42 2 28 13 27 C12 14 30 8 38 18 C44 4 70 4 72 20 C84 15 97 24 92 34 C99 38 95 43 88 42Z" fill="#fff" stroke="#1A1A1A" stroke-width="1.5"/></svg>
+    <svg class="deco cloud2" viewBox="0 0 100 46"><path d="M14 42 C3 42 2 28 13 27 C12 14 30 8 38 18 C44 4 70 4 72 20 C84 15 97 24 92 34 C99 38 95 43 88 42Z" fill="#fff" stroke="#1A1A1A" stroke-width="1.5"/></svg>
+    <svg class="deco sun" viewBox="0 0 40 40"><circle cx="20" cy="20" r="11" fill="#FFB547" stroke="#1A1A1A" stroke-width="1.5"/><g stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"><path d="M20 2v4M20 34v4M2 20h4M34 20h4M7 7l3 3M30 30l3 3M33 7l-3 3M10 30l-3 3"/></g><path d="M15.5 21.5 q4.5 4 9 0" fill="none" stroke="#1A1A1A" stroke-width="1.3" stroke-linecap="round"/><circle cx="16" cy="17.5" r="1" fill="#1A1A1A"/><circle cx="24" cy="17.5" r="1" fill="#1A1A1A"/></svg>
+    <div class="ground"></div>
+    <svg class="deco grass" viewBox="0 0 800 14" preserveAspectRatio="none"><g fill="none" stroke="#1A1A1A" stroke-width="1.3" stroke-linecap="round"><path d="M250 13 l3 -7 l3 7 M600 13 l3 -8 l3 8 M420 13 l2 -6 l2 6 M60 13 l2 -6 l2 6"/></g></svg>
+    <svg class="deco bush" viewBox="0 0 120 80"><path d="M8 78 C-2 60 10 42 26 46 C24 24 50 14 62 30 C70 12 100 16 100 40 C118 40 122 66 110 78Z" fill="#0F4C3A" stroke="#1A1A1A" stroke-width="1.5"/><g fill="none" stroke="#9fd3b8" stroke-width="1.6" stroke-linecap="round"><path d="M34 62 c4 -6 8 -6 10 -12"/><path d="M62 52 c3 -6 8 -8 9 -14"/><path d="M86 62 c4 -5 6 -10 6 -16"/></g></svg>
+    <svg class="deco bush2" viewBox="0 0 80 60"><path d="M6 58 C0 40 14 30 24 36 C26 14 56 12 58 32 C74 30 82 48 72 58Z" fill="#F7B9E1" stroke="#1A1A1A" stroke-width="1.5"/><path d="M30 46 c4 -4 8 -4 10 -10" fill="none" stroke="#1A1A1A" stroke-width="1.3" stroke-linecap="round"/></svg>`,
+  panel: `
+    <svg class="deco window" viewBox="0 0 120 80"><rect x="2" y="2" width="116" height="76" rx="8" fill="#CFE6F5" stroke="#1A1A1A" stroke-width="1.5"/><path d="M60 2v76M2 40h116" stroke="#1A1A1A" stroke-width="1.5"/><path d="M14 30 C10 30 10 23 16 23 C17 16 28 15 30 22 C36 20 40 25 37 30Z" fill="#fff" stroke="#1A1A1A" stroke-width="1.2"/><path d="M76 66 C72 66 72 59 78 59 C79 52 90 51 92 58 C98 56 102 61 99 66Z" fill="#fff" stroke="#1A1A1A" stroke-width="1.2"/></svg>
+    <svg class="deco board" viewBox="0 0 130 84"><rect x="2" y="2" width="126" height="70" rx="6" fill="#fff" stroke="#1A1A1A" stroke-width="1.5"/><path d="M14 58 L38 44 L58 50 L84 26 L112 14" fill="none" stroke="#FF6B4A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M104 12 L113 13.5 L110 22" fill="none" stroke="#FF6B4A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 20 c3 -6 6 -6 5 0 c-1 4 3 4 4 -1 c2 -5 5 -5 4 0" fill="none" stroke="#0F4C3A" stroke-width="1.6" stroke-linecap="round"/><path d="M20 72 l-6 10 M110 72 l6 10" stroke="#1A1A1A" stroke-width="1.5"/></svg>
+    <svg class="deco clock" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#fff" stroke="#03504A" stroke-width="4"/><path d="M20 10v10l7 4" fill="none" stroke="#1A1A1A" stroke-width="1.8" stroke-linecap="round"/><path d="M20 20 L20 3 A17 17 0 0 1 35 13Z" fill="#F7B9E1" opacity=".7"/></svg>
+    <div class="ground floor"></div>
+    <svg class="deco plant" viewBox="0 0 50 80"><path d="M14 56 h22 l-3 22 h-16Z" fill="#FF6B4A" stroke="#1A1A1A" stroke-width="1.5"/><path d="M25 56 C24 40 14 34 8 30 C16 30 24 36 25 46 C26 34 32 26 42 22 C34 30 28 40 25 56Z" fill="#0F4C3A" stroke="#1A1A1A" stroke-width="1.5"/></svg>`,
+  store: `
+    <svg class="deco bricks" viewBox="0 0 800 200" preserveAspectRatio="none"><g fill="none" stroke="#1A1A1A" stroke-width="1" opacity=".12" vector-effect="non-scaling-stroke">${Array.from({length:9},(_,r)=>`<path d="M0 ${r*22} H800"/>`+Array.from({length:21},(_,c)=>`<path d="M${c*40+(r%2?20:0)} ${r*22} v22"/>`).join("")).join("")}</g></svg>
+    <svg class="deco window" viewBox="0 0 170 110"><rect x="2" y="2" width="166" height="106" rx="6" fill="#CFE6F5" stroke="#1A1A1A" stroke-width="2"/><path d="M8 8 L40 8 L8 40Z" fill="#fff" opacity=".6"/>
+      <path d="M10 22 H160" stroke="#1A1A1A" stroke-width="1.6"/>
+      <g stroke="#1A1A1A" stroke-width="1.4" stroke-linejoin="round"><path d="M30 22 v5 M85 22 v5 M140 22 v5" fill="none"/>
+      <path d="M16 34 l7 -7 h14 l7 7 l-6 6 v32 h-16 v-32Z" fill="#FF6B4A"/><path d="M71 34 l7 -7 h14 l7 7 l-6 6 v40 h-16 v-40Z" fill="#1A1A1A"/><path d="M126 34 l7 -7 h14 l7 7 l-6 6 v34 h-16 v-34Z" fill="#FFB547"/></g>
+      <path d="M79 52 c3 -6 6 -6 5 0 c-1 4 3 4 4 -1" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+      <rect x="54" y="88" width="62" height="14" rx="7" fill="#1A1A1A"/><text x="85" y="98.5" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="8.5" fill="#fff" letter-spacing="1.5">DROP 01</text></svg>
+    <svg class="deco poster" viewBox="0 0 70 92"><rect x="3" y="3" width="64" height="86" fill="#F7B9E1" stroke="#1A1A1A" stroke-width="1.6" transform="rotate(-4 35 46)"/>
+      <g transform="rotate(-4 35 46)"><text x="35" y="22" text-anchor="middle" font-family="Instrument Serif,Georgia,serif" font-style="italic" font-size="15" fill="#1A1A1A">Vol. 2</text>
+      <path d="M16 36 l6 -6 h10 l6 6 l-5 5 v26 h-12 v-26Z" transform="translate(8 2)" fill="#fff" stroke="#1A1A1A" stroke-width="1.4"/>
+      <text x="35" y="82" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="6.4" fill="#1A1A1A" letter-spacing=".4">OVERSIZED TEE</text></g></svg>
+    <svg class="deco graffiti" viewBox="0 0 120 40"><path d="M4 28 c8 -22 16 -22 14 -4 c-2 12 10 10 12 -2 c3 -16 12 -16 11 -2 c-1 10 9 9 11 -2 c3 -14 12 -14 11 0 c-1 9 9 8 11 -2 c3 -12 11 -12 10 0" fill="none" stroke="#FF6B4A" stroke-width="3" stroke-linecap="round"/><path d="M96 10 l3 7 l7 1 l-5 5 l1 7 l-6 -4 l-6 4 l1 -7 l-5 -5 l7 -1Z" fill="#FFD23F" stroke="#1A1A1A" stroke-width="1.2"/></svg>
+    <div class="ground concrete"></div>
+    <svg class="deco rope" viewBox="0 0 600 50" preserveAspectRatio="none">${[20,170,320,470,580].map(x=>`<rect x="${x-3}" y="8" width="6" height="40" fill="#C9A227" stroke="#1A1A1A" stroke-width="1.2" vector-effect="non-scaling-stroke"/><circle cx="${x}" cy="8" r="5" fill="#C9A227" stroke="#1A1A1A" stroke-width="1.2" vector-effect="non-scaling-stroke"/><rect x="${x-8}" y="45" width="16" height="5" rx="2" fill="#1A1A1A"/>`).join("")}${[[20,170],[170,320],[320,470],[470,580]].map(([a,b])=>`<path d="M${a} 12 Q${(a+b)/2} 30 ${b} 12" fill="none" stroke="#B3261E" stroke-width="4" vector-effect="non-scaling-stroke"/>`).join("")}</svg>
+    <svg class="deco boxes" viewBox="0 0 70 60"><rect x="4" y="34" width="34" height="24" fill="#FF6B4A" stroke="#1A1A1A" stroke-width="1.5"/><rect x="4" y="34" width="34" height="7" fill="#1A1A1A"/><rect x="34" y="34" width="32" height="24" fill="#fff" stroke="#1A1A1A" stroke-width="1.5"/><rect x="34" y="34" width="32" height="7" fill="#FF6B4A" stroke="#1A1A1A" stroke-width="1.2"/><rect x="14" y="12" width="40" height="22" fill="#E9D8FB" stroke="#1A1A1A" stroke-width="1.5"/><rect x="14" y="12" width="40" height="7" fill="#1A1A1A"/></svg>`,
+  cafe: `
+    <svg class="deco sun" viewBox="0 0 40 40"><circle cx="20" cy="20" r="11" fill="#FFB547" stroke="#1A1A1A" stroke-width="1.5"/><g stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"><path d="M20 2v4M20 34v4M2 20h4M34 20h4M7 7l3 3M30 30l3 3M33 7l-3 3M10 30l-3 3"/></g></svg>
+    <svg class="deco cup" viewBox="0 0 70 60"><path d="M10 24 h36 l-4 30 h-28Z" fill="#fff" stroke="#1A1A1A" stroke-width="1.5"/><path d="M46 30 c10 0 10 14 -2 14" fill="none" stroke="#1A1A1A" stroke-width="1.5"/><path d="M18 18 c-4 -5 4 -8 0 -14 M28 18 c-4 -5 4 -8 0 -14 M38 18 c-4 -5 4 -8 0 -14" fill="none" stroke="#C03A82" stroke-width="1.6" stroke-linecap="round"/><path d="M18 36 c3 -6 6 -6 5 0 c-1 4 3 4 4 -1 c2 -5 5 -5 4 0" fill="none" stroke="#0F4C3A" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <svg class="deco croissant" viewBox="0 0 60 34"><path d="M4 26 C8 6 52 6 56 26 C46 20 40 30 30 22 C20 30 14 20 4 26Z" fill="#FFB547" stroke="#1A1A1A" stroke-width="1.5"/><path d="M20 12 l4 12 M30 9 v13 M40 12 l-4 12" stroke="#1A1A1A" stroke-width="1.2"/></svg>
+    <svg class="deco cloud2" viewBox="0 0 100 46"><path d="M14 42 C3 42 2 28 13 27 C12 14 30 8 38 18 C44 4 70 4 72 20 C84 15 97 24 92 34 C99 38 95 43 88 42Z" fill="#fff" stroke="#1A1A1A" stroke-width="1.5"/></svg>
+    <div class="ground"></div>
+    <svg class="deco umbrella" viewBox="0 0 90 90"><path d="M4 34 C10 6 80 6 86 34Z" fill="#FF6B4A" stroke="#1A1A1A" stroke-width="1.5"/><path d="M27 34 C30 18 38 10 45 8 C52 10 60 18 63 34" fill="none" stroke="#1A1A1A" stroke-width="1.3"/><path d="M45 34 v48" stroke="#1A1A1A" stroke-width="2"/><rect x="22" y="58" width="46" height="5" rx="2" fill="#fff" stroke="#1A1A1A" stroke-width="1.5"/><path d="M28 63 v20 M62 63 v20" stroke="#1A1A1A" stroke-width="1.5"/></svg>`,
+  bar: `
+    <svg class="deco lights" viewBox="0 0 800 40" preserveAspectRatio="none"><path d="M0 6 Q100 34 200 8 T400 8 T600 8 T800 6" fill="none" stroke="#FFF7DA" stroke-width="1.5"/>${Array.from({length:16},(_,i)=>{const x=25+i*50;const y=12+Math.abs(Math.sin(i*1.57))*12;return `<circle cx="${x}" cy="${y}" r="5" fill="${["#FFB547","#F7B9E1","#9fd3b8","#FF6B4A"][i%4]}" stroke="#1A1A1A" stroke-width="1.2"/>`}).join("")}</svg>
+    <svg class="deco moon" viewBox="0 0 40 40"><path d="M26 4 A16 16 0 1 0 36 28 A13 13 0 1 1 26 4Z" fill="#FFF7DA" stroke="#1A1A1A" stroke-width="1.5"/></svg>
+    <svg class="deco nstars" viewBox="0 0 200 40"><g fill="#FFF7DA"><circle cx="12" cy="10" r="1.6"/><circle cx="60" cy="26" r="1.2"/><circle cx="110" cy="8" r="1.8"/><circle cx="150" cy="30" r="1.2"/><circle cx="190" cy="14" r="1.6"/></g><path d="M84 18 v8 M80 22 h8" stroke="#FFF7DA" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <svg class="deco neon" viewBox="0 0 70 60"><rect x="2" y="2" width="66" height="56" rx="10" fill="none" stroke="#F7B9E1" stroke-width="2"/><path d="M20 18 h22 v28 a4 4 0 0 1 -4 4 h-14 a4 4 0 0 1 -4 -4Z" fill="none" stroke="#FFB547" stroke-width="2.4"/><path d="M42 24 c9 0 9 14 0 14" fill="none" stroke="#FFB547" stroke-width="2.4"/><path d="M22 14 c2 -6 6 -6 8 -2 c2 -4 6 -4 8 0" fill="none" stroke="#fff" stroke-width="2"/></svg>
+    <div class="ground"></div>
+    <svg class="deco barrel" viewBox="0 0 160 100">
+    <g stroke="#1A1A1A" stroke-width="1.6" stroke-linejoin="round">
+    <path d="M18 22 C11 42 11 66 18 86 A22 6 0 0 0 62 86 C69 66 69 42 62 22Z" fill="#C8743C"/>
+    <path d="M22 30 C18 46 18 62 22 78" fill="none" stroke="#F0B07A" stroke-width="3" stroke-linecap="round"/>
+    <g fill="none" stroke="#9C5428" stroke-width="1.2"><path d="M27 24 C23 44 23 64 27 87.5"/><path d="M34.5 24.8 C33.5 44 33.5 64 34.5 88"/><path d="M45.5 24.8 C46.5 44 46.5 64 45.5 88"/><path d="M53 24 C57 44 57 64 53 87.5"/></g>
+    <path d="M15.4 31 C30 36 50 36 64.6 31 L65.4 37.5 C50 42.5 30 42.5 14.6 37.5Z" fill="#2B2B2B"/>
+    <path d="M14.6 70.5 C30 75.5 50 75.5 65.4 70.5 L64.6 77 C50 82 30 82 15.4 77Z" fill="#2B2B2B"/>
+    <path d="M18 34.5 C30 38 50 38 62 34.5 M18 74 C30 77.5 50 77.5 62 74" fill="none" stroke="#6b6b6b" stroke-width="1"/>
+    <ellipse cx="40" cy="22" rx="22" ry="6" fill="#E39A5E"/>
+    <ellipse cx="40" cy="22" rx="16.5" ry="4.2" fill="none" stroke="#9C5428" stroke-width="1.1"/>
+    <path d="M40 14.5 C41 18 43 20.5 46 22" fill="none" stroke="#2E7D45" stroke-width="1.8" stroke-linecap="round"/>
+    <g transform="translate(40 12.5) scale(.62)" fill="#3DAA5C" stroke-width="1.6">
+    <path d="M0 0 C-6 -3 -7 -9 -3 -10 C-1 -10.5 0 -9 0 -8 C0 -9 1 -10.5 3 -10 C7 -9 6 -3 0 0Z"/>
+    <path transform="rotate(90)" d="M0 0 C-6 -3 -7 -9 -3 -10 C-1 -10.5 0 -9 0 -8 C0 -9 1 -10.5 3 -10 C7 -9 6 -3 0 0Z"/>
+    <path transform="rotate(180)" d="M0 0 C-6 -3 -7 -9 -3 -10 C-1 -10.5 0 -9 0 -8 C0 -9 1 -10.5 3 -10 C7 -9 6 -3 0 0Z"/>
+    <path transform="rotate(270)" d="M0 0 C-6 -3 -7 -9 -3 -10 C-1 -10.5 0 -9 0 -8 C0 -9 1 -10.5 3 -10 C7 -9 6 -3 0 0Z"/>
+    </g>
+    <g transform="translate(121 64) rotate(-90) translate(-40 -54)">
+    <path d="M18 22 C11 42 11 66 18 86 A22 6 0 0 0 62 86 C69 66 69 42 62 22Z" fill="#C8743C"/>
+    <path d="M58 30 C62 46 62 62 58 78" fill="none" stroke="#F0B07A" stroke-width="3" stroke-linecap="round"/>
+    <g fill="none" stroke="#9C5428" stroke-width="1.2"><path d="M27 24 C23 44 23 64 27 87.5"/><path d="M34.5 24.8 C33.5 44 33.5 64 34.5 88"/><path d="M45.5 24.8 C46.5 44 46.5 64 45.5 88"/><path d="M53 24 C57 44 57 64 53 87.5"/></g>
+    <path d="M15.4 31 C30 36 50 36 64.6 31 L65.4 37.5 C50 42.5 30 42.5 14.6 37.5Z" fill="#2B2B2B"/>
+    <path d="M14.6 70.5 C30 75.5 50 75.5 65.4 70.5 L64.6 77 C50 82 30 82 15.4 77Z" fill="#2B2B2B"/>
+    </g>
+    <ellipse cx="89" cy="64" rx="8.5" ry="22" fill="#E39A5E"/>
+    <ellipse cx="89" cy="64" rx="5.6" ry="16" fill="none" stroke="#9C5428" stroke-width="1.1"/>
+    <path d="M85 72 h-8 a2 2 0 0 0 0 4 h8Z" fill="#E8B33A" stroke-width="1.3"/>
+    <rect x="78.4" y="63" width="3" height="10" rx="1.5" fill="#E8B33A" stroke-width="1.2"/>
+    <path d="M77 76.5 q-1.4 2.6 0 3.6 q1.4 -1 0 -3.6Z" fill="#FFD23F" stroke-width=".9"/>
+    <path d="M98 99 L101 87 Q108 93 115 87 L118 99Z M128 99 L131 87 Q138 93 145 87 L148 99Z" fill="#7A4A2B"/>
+    </g>
+    </svg>`
+};
+const FACADE = {
+  store:`<svg viewBox="0 0 60 50"><path d="M10 14 l10 -9 h20 l10 9 l-7 7 v25 h-26 v-25Z" fill="#0F4C3A" stroke="#1A1A1A" stroke-width="1.5" stroke-linejoin="round"/><path d="M24 5 c2 5 10 5 12 0" fill="none" stroke="#1A1A1A" stroke-width="1.5"/><path d="M22 30 c3 -6 6 -6 5 0 c-1 4 3 4 4 -1 c2 -5 5 -5 4 0" fill="none" stroke="#9fd3b8" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  cafe:`<svg viewBox="0 0 60 50"><path d="M12 18 h30 l-3 26 h-24Z" fill="#fff" stroke="#1A1A1A" stroke-width="1.5"/><path d="M42 22 c9 0 9 12 -2 12" fill="none" stroke="#1A1A1A" stroke-width="1.5"/><path d="M20 13 c-3 -4 3 -6 0 -10 M30 13 c-3 -4 3 -6 0 -10" fill="none" stroke="#C03A82" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  bar:`<svg viewBox="0 0 60 50"><path d="M16 12 h22 v28 a4 4 0 0 1 -4 4 h-14 a4 4 0 0 1 -4 -4Z" fill="#FFB547" stroke="#1A1A1A" stroke-width="1.5"/><path d="M16 12 c0 -6 22 -6 22 0" fill="#fff" stroke="#1A1A1A" stroke-width="1.5"/><path d="M38 18 c9 0 9 14 0 14" fill="none" stroke="#1A1A1A" stroke-width="1.5"/></svg>`
+};
+function dressScene(theme, opts={}){
+  const st = $("street");
+  st.className = "street theme-" + theme + (opts.big ? " big" : "");
+  $("deco").innerHTML = DECO[theme] || "";
+  $("facadeIcon").innerHTML = FACADE[theme] || "";
+  $("signText").textContent = opts.sign || "Wispr Flow";
+  $("liveText").innerHTML = opts.live || "Growth team<br>interviews live";
+  $("liveShort").textContent = opts.liveShort || "Live";
+  $("door").classList.remove("open");
+  $("mascot").hidden = theme !== "store";
+}
+
+/* ---------- App state ---------- */
+const APP = {
+  storyDone: !!store.get("storyDone", false),
+  names: ["Growth Lead","Partnerships Lead","Founder"],
+  round: 0, results: [], beaten: [], runs: {}, done: {}
+};
+const peekState = {left: 2, locked: false};
+let S;
+
+/* ---------- Runs ---------- */
+function newStory(){
+  dressScene("story");
+  S = {
+    mode:"story", line:null, player:{name:"You", sub:"Harsha", look:{custom:"harsha"}},
+    rivals: LINEUP.map(r => ({...r, weak:[r.weak], immune:[r.immune], seen:false, immSeen:[], tried:[]})),
+    beatBy:{}, out:[], lastOut:null, moves:10, maxMoves:10, cost:1, used:0,
+    score:0, gained:0, backfires:0, observes:0, hand:[], spent:[], sel:null, busy:false, lessonIdx:0, over:false
+  };
+  draw();
+}
+
+function newRun(mode, lineId, playerName, playerLook){
+  const line = LINES[lineId];
+  const free = mode === "free";
+  const seed = hashStr(todayKey() + "|" + lineId + "|" + mode);
+  const r = mulberry32(seed);
+  const count = free ? 10 : 4;
+  const {people, used} = genLine(line, count, r, {poolSize: free ? 8 : 6, groups: free});
+  const moves = free ? 15 : ROUND_MOVES[lineId];
+  dressScene(line.theme, {sign: line.brand, live: line.live, liveShort: line.shortLive, big: free});
+  S = {
+    mode, line, rng: r, names: used, player:{name: playerName, sub: free ? "You" : "Panelist", look: playerLook},
+    rivals: people.map(p => ({...p, seen:false, immSeen:[], tried:[]})),
+    beatBy:{}, out:[], lastOut:null, moves, maxMoves:moves, cost:1, used:0,
+    score:0, gained:0, backfires:0, observes:0, chains:0, hand:[], spent:[], sel:null, busy:false, lessonIdx:99, over:false,
+    stock: line.twist === "stock" ? moves - 1 : null,
+    cutAt: line.twist === "cutin" ? (free ? 4 : 2) : null, cutDone:false,
+    hhAt: line.twist === "happyhour" ? (free ? 8 : 3) : null, hhOver:false
+  };
+  draw();
+}
+
+function deckCards(){
+  if(S.mode === "story") return CARDS.filter(c => !S.spent.includes(c.id)).map(c => ({...c, key:c.type}));
+  return S.line.deck.map(id => ({id, key:id, title:GAG[id].title, short:GAG[id].short, where: ["prank","prod","celeb","light","nextdoor","crypto","rain"].includes(id) ? "Works in any line" : `${S.line.brand} special`, c:GAG[id].c}));
+}
+// Every hand of 3 must contain at least one card that is someone's weak spot in the line
+function handWorks(hand){ return hand.some(c => S.rivals.some(r => r.weak.includes(c.key))); }
+function draw(){
+  const pool = deckCards();
+  const r = S.rng || rand;
+  let hand = shuffle(pool, r).slice(0, 3);
+  const possible = pool.some(c => S.rivals.some(x => x.weak.includes(c.key)));
+  for(let t = 0; t < 40 && possible && !handWorks(hand); t++) hand = shuffle(pool, r).slice(0, 3);
+  S.hand = hand;
+}
+// After a move: keep the hand. Only a card that worked leaves it (and a new one is drawn).
+// Observe, a miss or a backfire never reshuffles. The checker still guarantees one playable card.
+function refillHand(){
+  const r = S.rng || rand;
+  const pool = deckCards();
+  if(S.playedHit) S.hand = S.hand.filter(c => c.id !== S.playedHit);
+  S.playedHit = null;
+  S.hand = S.hand.filter(c => pool.some(p => p.id === c.id)); // drop anything no longer in the deck
+  let spare = shuffle(pool.filter(p => !S.hand.some(c => c.id === p.id)), r);
+  while(S.hand.length < 3 && spare.length) S.hand.push(spare.shift());
+  if(!handWorks(S.hand)){
+    const fix = spare.find(c => S.rivals.some(x => x.weak.includes(c.key)));
+    if(fix){
+      const dead = S.hand.findIndex(c => !S.rivals.some(x => x.weak.includes(c.key)));
+      S.hand[dead >= 0 ? dead : S.hand.length - 1] = fix;
+    }
+  }
+}
+
+/* ---------- HUD ---------- */
+function renderHud(){
+  let title, sub;
+  if(S.mode === "story"){ title = `You're <i>7th</i> in line <span class="tag">(#TisFAR)</span>`; sub = APP.storyDone ? "Level 1 · You're back in line. Free Play is unlocked." : "Level 1 · The applicant queue"; }
+  else if(S.mode === "panel"){ title = `The <i>panel</i>`; sub = "Boss level · Three questions"; }
+  else if(S.mode === "round"){ title = `${esc(S.line.brand)}`; sub = `Boss level · Played by ${esc(S.player.name)} · ${Object.keys(APP.done).length} of 3 lines finished`; }
+  else { title = `${esc(S.line.brand)}`; sub = `Free Play · ${esc(S.line.tagline)} · Today's line`; }
+  $("brandTitle").innerHTML = title; $("brandSub").innerHTML = sub;
+
+  let html = "";
+  if(S.mode === "panel"){
+    html += `<span class="stat">Convinced<b>${PANEL.filter(p => S.done[p.id]).length}/3</b></span>`;
+  } else {
+    html += `<span class="stat${S.moves <= 2 ? " low" : ""}">Moves<b>${S.moves}</b></span>`;
+    html += `<span class="stat">Spot<b>${ord(S.rivals.length + 1)}</b></span>`;
+    html += `<span class="stat">Score<b>${S.score}</b></span>`;
+    if(S.stock !== null && S.stock !== undefined) html += `<span class="stat${S.stock <= 2 ? " low" : ""}">Pieces left<b>${S.stock}</b></span>`;
+    if(S.hhAt) html += `<span class="stat${S.hhOver ? " low" : ""}">${S.hhOver ? "Happy hour over · moves cost" : "Happy hour"}<b>${S.hhOver ? "×2" : "on"}</b></span>`;
+    if(S.cutAt) html += `<span class="stat">Cut-in<b>${S.cutDone ? "happened" : "after move " + S.cutAt}</b></span>`;
+  }
+  if(S.mode === "story") html += `<button class="peek" id="peekBtn" type="button" ${peekState.locked ? "disabled" : ""}>${peekState.locked ? "No more peeks" : `Peek at cheat sheet (${peekState.left})`}</button>`;
+  if(APP.storyDone && (S.mode === "story" || S.mode === "free")) html += `<button class="peek sel" id="lvlBtn" type="button">Level select</button>`;
+  $("stats").innerHTML = html;
+  if($("peekBtn")) $("peekBtn").onclick = peek;
+  if($("lvlBtn")) $("lvlBtn").onclick = levelSelect;
+}
+
+/* ---------- Queue rendering ---------- */
+function personBtn(cls, id, look, name, sub, chips, aria, badges=""){
+  const b = document.createElement("button");
+  b.className = "person " + cls; b.type = "button"; b.dataset.id = id;
+  if(aria) b.setAttribute("aria-label", aria);
+  b.innerHTML = `<span class="badges">${badges}</span>${avatar(look)}<span class="nm">${esc(name)}</span><span class="tg">${esc(sub || "")}</span><span class="chips">${chips || ""}</span>`;
+  return b;
+}
+/* Icons above heads: what you know about someone. Tap them for the details. */
+const ICON = {
+  weak:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/></svg>`,
+  meh:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 10h.01M15.5 10h.01M8.5 15h7"/></svg>`,
+  back:`<svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>`
+};
+const badge = (kind, n, title) => n ? `<span class="bdg" title="${title}">${ICON[kind]}${n > 1 ? `<i>×${n}</i>` : ""}</span>` : "";
+function rivalBadges(r){
+  const weak = r.seen ? r.weak.length : 0;
+  const back = r.seen ? r.immune.length : r.immSeen.length;
+  return badge("weak", weak, "Weak spot found") + badge("meh", r.tried.length, "Tried, no effect") + badge("back", back, "Backfires");
+}
+function rivalChips(r){
+  if(r.leader) return `<span class="chip lead">Leader</span>`;
+  if(r.group) return `<span class="chip grp">Group</span>`;
+  return "";
+}
+function renderQueue(){
+  const q = $("queue");
+  const before = {};
+  q.querySelectorAll(".person").forEach(el => { before[el.dataset.id] = el.getBoundingClientRect().left; });
+  q.innerHTML = "";
+
+  if(S.mode === "panel"){
+    const you = personBtn("you", "you", {custom:"harsha"}, "You", "Harsha", "");
+    you.onclick = () => say({name:"Harsha", title:"That's you", look:{custom:"harsha"}}, "Three people, three questions. Answer with what you actually did.");
+    q.appendChild(you);
+    const gap = document.createElement("span"); gap.className = "gap"; q.appendChild(gap);
+    const row = document.createElement("div"); row.className = "panelrow";
+    PANEL.forEach(p => {
+      const done = S.done[p.id];
+      const b = personBtn("panelist" + (done ? " done" : ""), p.id, p.look, p.role, "", done ? `<span class="chip ok">Convinced</span>` : `<span class="chip q">Asking</span>`, p.role);
+      b.onclick = () => onPanelist(p.id);
+      row.appendChild(b);
+    });
+    q.appendChild(row);
+    $("street").classList.toggle("armed", !!S.sel);
+    return;
+  }
+
+  const outShown = S.mode === "free" ? S.out.slice(0, 3) : S.out;
+  const hidden = S.out.length - outShown.length;
+  if(hidden > 0){ const more = document.createElement("span"); more.className = "more"; more.textContent = `+${hidden} behind`; q.appendChild(more); }
+  [...outShown].reverse().forEach(r => {
+    const b = personBtn("out", r.id, r.look, r.name, "Behind you now", `<span class="chip q">Out</span>`, `${r.name}, now behind you`);
+    b.onclick = () => { if(!S.busy) say(r, `${esc(r.name)} is behind you now, sulking. <span class="fx">Nothing more to play here.</span>`); };
+    q.appendChild(b);
+  });
+  const you = personBtn("you", "you", S.player.look, S.mode === "story" ? "You" : S.player.name, S.player.sub, "");
+  you.onclick = () => { if(!S.busy) say({name:S.player.name, title:"That's you", look:S.player.look}, S.mode === "story" ? "That's me. Six people ahead, ten moves, one door. Every card in my hand is something I actually did." : "That's you. Get to the door before the line wins."); };
+  q.appendChild(you);
+  [...S.rivals].reverse().forEach(r => {
+    const b = personBtn("rival", r.id, r.look, r.name, r.title, rivalChips(r), `${r.name}, ${r.title}`, rivalBadges(r));
+    b.onclick = () => onRival(r.id, b);
+    q.appendChild(b);
+  });
+
+  q.querySelectorAll(".person").forEach(el => {
+    const was = before[el.dataset.id];
+    if(was === undefined || !el.animate) return;
+    const dx = was - el.getBoundingClientRect().left;
+    if(Math.abs(dx) < 1) return;
+    if(el.dataset.id === S.lastOut){
+      el.animate([{transform:`translate(${dx}px,0)`},{transform:`translate(${dx*0.5}px,-34px) rotate(-6deg)`},{transform:"none"}], {duration:900, easing:"ease-in-out"});
+    } else {
+      el.animate([{transform:`translateX(${dx}px)`},{transform:"none"}], {duration:650, easing:"cubic-bezier(.2,.8,.2,1)", delay: el.dataset.id==="you" ? 120 : 0});
+    }
+  });
+  S.lastOut = null;
+  $("street").classList.toggle("armed", !!S.sel);
+  // keep "you" in view when the line scrolls (Free Play on phones)
+  const youEl = q.querySelector(".person.you");
+  if(youEl && q.scrollWidth > q.clientWidth) q.scrollLeft = Math.max(0, youEl.offsetLeft - q.clientWidth * 0.35);
+}
+
+/* ---------- Hand ---------- */
+function renderHand(){
+  const h = $("hand");
+  h.innerHTML = "";
+  let cards;
+  if(S.mode === "panel"){
+    cards = CARDS.map(c => ({...c, key:c.type}));
+    if(S.linesUnlocked) cards = [{...LINES_CARD, key:"lines"}, ...cards];
+  } else cards = [...S.hand, {...OBSERVE, key:"observe"}];
+  cards.forEach(c => {
+    const b = document.createElement("button");
+    b.type = "button";
+    const special = c.id === "lines";
+    b.className = "card" + (c.id === "observe" ? " obs" : "") + (special ? " special" : "") + (S.sel === c.id ? " sel" : "");
+    const color = c.type && TYPES[c.type] ? TYPES[c.type].c : c.c || null;
+    if(color) b.style.setProperty("--tc", color);
+    const pill = c.id === "observe" ? "Free look" : special ? "New card" : TYPES[c.type] ? TYPES[c.type].label : "Gag";
+    b.innerHTML = `<span class="ty">${esc(pill)}</span><h3>${esc(c.title)}</h3><p>${esc(c.short)}</p><span class="wh">${esc(c.where || "")}</span>`;
+    b.onclick = () => { if(S.busy || S.over) return; S.sel = (S.sel === c.id ? null : c.id); render(); };
+    b.disabled = !!S.over;
+    h.appendChild(b);
+  });
+  const all = [...cards];
+  const selCard = S.sel && all.find(c => c.id === S.sel);
+  let p;
+  if(S.mode === "panel") p = selCard ? `Now tap a panelist to answer with <b>${esc(selCard.title)}</b>.` : `Tap a panelist to hear their question. Then answer with a card.`;
+  else p = selCard ? `Now tap someone in line to play <b>${esc(selCard.title)}</b> on them.` : `Pick a card. Or tap anyone in line to hear them out (that's free).`;
+  $("prompt").innerHTML = `<span class="dot"></span>${p}`;
+}
+
+function renderTray(){
+  const t = $("tray");
+  if(S.mode !== "story" || !S.spent.length){ t.innerHTML = ""; return; }
+  t.innerHTML = `Receipts collected: ` + S.spent.map(id => { const c = CARDS.find(x => x.id === id); return `<button type="button" class="chip rc" data-card="${c.id}" style="background:${TYPES[c.type].c};border-color:${TYPES[c.type].c}">${esc(c.title)}</button>`; }).join("");
+  t.querySelectorAll(".rc").forEach(b => b.onclick = () => {
+    const c = CARDS.find(x => x.id === b.dataset.card), r = LINEUP.find(x => x.id === S.beatBy[c.id]);
+    if(r) say(r, esc(`"${r.exit}"`), `<div class="receipt"><b>Receipt · ${esc(c.where)}</b>${esc(c.proof)}</div>`);
+  });
+}
+
+function render(){ renderSwitcher(); renderHud(); renderQueue(); renderHand(); renderTray(); }
+
+function say(who, text, extra=""){
+  $("speech").innerHTML = `<div class="sp-av">${avatar(who.look)}</div>
+    <div class="sp-body"><div class="sp-name">${SQUIG}<span>${esc(who.name)}${who.title ? " · " + esc(who.title) : ""}${who.tag ? " · " + esc(who.tag) : ""}</span></div>
+    <div class="sp-text">${text}</div>${extra}</div>`;
+}
+const host = () => S.mode === "story" ? NARRATOR : HOSTS[S.line.id];
+
+/* ---------- Play ---------- */
+function onRival(id, el){
+  if(S.busy || S.over) return;
+  const r = S.rivals.find(x => x.id === id);
+  if(!r) return;
+  if(!S.sel){
+    const notes = [];
+    if(r.tried.length) notes.push(`No effect: ${r.tried.map(keyLabel).join(", ")}.`);
+    if(r.immSeen.length && !r.seen) notes.push(`Backfires: ${r.immSeen.map(keyLabel).join(", ")}.`);
+    if(r.seen) notes.push(`Weak to ${r.weak.map(keyLabel).join(", ")}. Immune to ${r.immune.map(keyLabel).join(", ") || "nothing"}.`);
+    if(r.leader) notes.push(`Leads a group: if ${r.name} leaves, the whole group follows.`);
+    say(r, esc(`"${r.quote}"`), notes.length ? `<div class="receipt"><b>Your notes on ${esc(r.name)}</b>${esc(notes.join(" "))}</div>` : "");
+    return;
+  }
+  play(S.sel, r, el);
+}
+
+function exitLine(r, key){
+  if(!r.gen) return r.exit;
+  return pick(GAG_EXITS[key]).replaceAll("{n}", r.name);
+}
+
+function play(cardId, r, el){
+  if(S.moves < S.cost){ return; }
+  S.busy = true;
+  S.moves -= S.cost; S.used++;
+  S.sel = null;
+  let delay = 900;
+  if(S.stock !== null && S.stock !== undefined) S.stock = Math.max(0, S.stock - 1);
+
+  if(cardId === "observe"){
+    S.observes++;
+    r.seen = true;
+    say(r, `<span class="fx">You watch ${esc(r.name)} for a minute.</span> ${esc(r.hidden)}`,
+      `<div class="receipt"><b>Read</b>Weak to ${r.weak.map(keyLabel).join(", ")}. Immune to ${r.immune.map(keyLabel).join(", ") || "nothing"}.</div>`);
+    delay = 250;
+  } else {
+    const card = S.mode === "story" ? {...CARDS.find(c => c.id === cardId), key: CARDS.find(c => c.id === cardId).type} : {id:cardId, key:cardId, title:GAG[cardId].title};
+    if(r.weak.includes(card.key)){
+      // who leaves: the person, or the whole group if they lead one
+      const leaving = r.leader ? S.rivals.filter(x => x.group === r.group) : [r];
+      const n = leaving.length;
+      S.score += 100 * n + (n > 1 ? 75 : 0); S.gained += n;
+      if(n > 1) S.chains++;
+      S.playedHit = card.id;
+      if(S.mode === "story"){ S.spent.push(card.id); S.beatBy[card.id] = r.id; }
+      const chain = n > 1 ? ` <span class="fx good">Chain! The whole group of ${n} follows. +${100*n+75}</span>` : ` <span class="fx good">+100 · you move up.</span>`;
+      const receipt = S.mode === "story" ? `<div class="receipt"><b>Receipt · ${esc(card.where)}</b>${esc(card.proof)}</div>` : "";
+      say(r, esc(S.mode === "story" ? `"${exitLine(r, card.key)}"` : exitLine(r, card.key)) + chain, receipt);
+      setTimeout(() => {
+        S.rivals = S.rivals.filter(x => !leaving.includes(x));
+        leaving.forEach(x => { if(r.leader && x !== r) x.group = null; });
+        S.out = [...S.out, ...leaving.map(x => ({...x, leader:false}))]; // newest go to the very back
+        APP.beaten.push(...leaving);
+        S.lastOut = r.id;
+        afterMove();
+      }, 350);
+      return;
+    } else if(r.immune.includes(card.key)){
+      S.score -= 30; S.backfires++;
+      if(!r.immSeen.includes(card.key)) r.immSeen.push(card.key);
+      el.classList.add("shake");
+      let note;
+      if(S.out.length){
+        const back = S.out.shift();
+        if(S.mode === "story"){
+          const cid = Object.keys(S.beatBy).find(k => S.beatBy[k] === back.id);
+          if(cid){ S.spent = S.spent.filter(x => x !== cid); delete S.beatBy[cid]; }
+        }
+        back.seen = true; S.score -= 100; S.gained--;
+        S.cutBack = back;
+        note = `<div class="receipt bad"><b>Backfire · you drop back a spot</b>${esc(r.name)} is immune to ${esc(keyLabel(card.key))}. While you were busy, ${esc(back.name)} cut back in front of you.${S.mode === "story" ? ` You already know what works on ${esc(back.name)}, so that card is back in your deck.` : ` You already know what works on ${esc(back.name)}.`}</div>`;
+      } else {
+        note = `<div class="receipt bad"><b>Backfire · immune to ${esc(keyLabel(card.key))}</b>${esc(r.name)} saw that coming. You're already at the back, so there's nowhere to drop. Try a different angle.</div>`;
+      }
+      say(r, `${esc(`"${r.bounce}"`)} <span class="fx bad">Backfire.</span>`, note);
+      if(S.mode === "story" && S.lessonIdx < LESSONS.length){ const L = LESSONS[S.lessonIdx++]; setTimeout(() => showLesson(L), 700); }
+    } else {
+      el.classList.add("shake");
+      if(!r.tried.includes(card.key)) r.tried.push(card.key);
+      say(r, esc(pick(SHRUGS).replace("{n}", r.name)),
+        `<div class="receipt"><b>Noted on ${esc(r.name)}'s tag</b>${esc(keyLabel(card.key))} doesn't work on ${esc(r.name)}. Don't waste another move on it.</div>`);
+    }
+  }
+  setTimeout(() => {
+    if(S.cutBack){ S.rivals.push(S.cutBack); S.lastOut = S.cutBack.id; S.cutBack = null; }
+    afterMove();
+  }, delay);
+}
+
+// Line twists run after every move
+function afterMove(){
+  S.busy = false;
+  if(S.rivals.length === 0){ finishRun(true); return; }
+  if(S.cutAt && !S.cutDone && S.used >= S.cutAt){
+    S.cutDone = true;
+    const friendOf = pick(S.rivals);
+    const arch = pick(S.line.archetypes.slice(0, S.mode === "free" ? 8 : 6));
+    const p = genPerson(S.line, arch, S.rng, S.names, 90 + S.used);
+    p.tag = `${friendOf.name}'s friend`;
+    S.rivals.push({...p, seen:false, immSeen:[], tried:[]});
+    S.lastOut = p.id;
+    say(host(), `${esc(friendOf.name)} waves someone over. "${esc(p.name)} is with me, I saved a spot!" <span class="fx bad">${esc(p.name)} cuts in ahead of you.</span>`);
+  }
+  if(S.hhAt && !S.hhOver && S.used >= S.hhAt){
+    S.hhOver = true; S.cost = 2;
+    $("liveText").textContent = "Happy hour over"; $("liveShort").textContent = "Over";
+    $("street").classList.add("hh-over");
+    say(host(), `Happy hour's over. <span class="fx bad">Every move now costs 2.</span>`);
+  }
+  if(S.stock !== null && S.stock !== undefined && S.stock <= 0){ finishRun(false, "soldout"); return; }
+  if(S.moves < S.cost){ finishRun(false); return; }
+  refillHand();
+  render();
+}
+
+/* ---------- Overlays ---------- */
+function open(html, wide){ $("modal").innerHTML = html; $("modal").classList.toggle("wide", !!wide); $("ov").hidden = false; $("modal").scrollTop = 0; }
+function close(){ $("ov").hidden = true; }
+
+function intro(){
+  open(`<div class="kicker">Level 1 · The applicant queue</div>
+    <h2>You're <i>7th</i> in line.</h2>
+    <p>You're playing as me, Harsha. 2,000+ people applied to Wispr Flow's growth team. Six of them got here before you. The door shuts after <b>10 moves</b>.</p>
+    <ul>
+      <li>Every turn you draw 3 cards. Each one is a real thing I did.</li>
+      <li>Play a card on anyone in line. Hit their weak spot <span class="ico-in" title="Weak spot">${ICON.weak}</span> and they leave. You move up.</li>
+      <li>Hit what they're immune to and it backfires <span class="ico-in" title="Backfires">${ICON.back}</span>: you drop back a spot.</li>
+      <li>If a card does nothing, they just shrug <span class="ico-in" title="No effect">${ICON.meh}</span>.</li>
+      <li>Not sure? <b>Observe</b> someone to read them. It costs a move.</li>
+      <li>Tapping someone just to hear them talk is free. Their lines are clues. Icons above their head show what you've learned.</li>
+    </ul>
+    <div class="btns"><button class="btn" id="go">Get in line</button></div>`);
+  $("go").onclick = () => { close(); say(NARRATOR, "Door shuts after ten moves. No cutting, no drama. Okay, a little drama."); };
+}
+
+function showLesson(L){
+  open(`<div class="kicker">Lesson learned · ${esc(L.where)}</div><h2>${esc(L.title)}</h2><p>${esc(L.text)}</p>
+    <div class="btns"><button class="btn alt" id="ok">Noted. Back in line.</button></div>`);
+  $("ok").onclick = close;
+}
+
+function peek(){
+  if(S.busy || S.over || peekState.locked) return;
+  if(peekState.left <= 0){
+    peekState.locked = true;
+    say(NARRATOR, "Twice is a hint. Three times is a cheat sheet. Just play the game, no?");
+    render(); return;
+  }
+  peekState.left--;
+  const rows = LINEUP.map(r => `<tr><td><b>${esc(r.name)}</b><br><span style="color:var(--muted);font-size:12px">${esc(r.title)}</span></td><td>${tchip(r.weak)}</td><td>${tchip(r.immune,"imm")}</td></tr>`).join("");
+  open(`<div class="cheat"><div class="kicker">Cheat sheet · ${peekState.left} peek${peekState.left===1?"":"s"} left</div>
+    <table><thead><tr><th>Rival</th><th>Weak to</th><th>Immune to</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="timer" id="tm"><i></i></div></div>`);
+  requestAnimationFrame(() => $("tm").classList.add("run"));
+  setTimeout(() => { close(); render(); }, 2000);
+  render();
+}
+
+function receiptsHTML(){
+  return CARDS.map(c => `<div class="rec" style="--tc:${TYPES[c.type].c}"><span class="wh">${esc(c.where)} · ${TYPES[c.type].label}</span><h4>${esc(c.title)}</h4><p>${esc(c.proof)}</p></div>`).join("");
+}
+
+/* ---------- End of a run ---------- */
+function finishRun(won, why){
+  S.over = true;
+  const bonus = won ? S.moves * 50 : 0;
+  S.score += bonus;
+  render();
+  if(won) $("door").classList.add("open");
+  if(S.mode === "story") return won ? storyWin(bonus) : storyLose();
+  if(S.mode === "round") return roundEnd(won, bonus, why);
+  return freeEnd(won, bonus, why);
+}
+
+function storyWin(bonus){
+  say(NARRATOR, "First in line. Okay okay, go in. They're waiting for you.");
+  setTimeout(() => {
+    open(`<div class="kicker">Level 1 cleared</div>
+      <h2>You're at the <i>door</i>.</h2>
+      <p>Six rivals, six receipts. Here's everything you just played, in one place:</p>
+      <div class="scoreline"><span class="stat">Score<b>${S.score}</b></span><span class="stat">Moves left<b>${S.moves}</b> (+${bonus})</span><span class="stat">Backfires<b>${S.backfires}</b></span></div>
+      <div class="rec-list">${receiptsHTML()}</div>
+      <div class="btns"><button class="btn" id="knock">Knock on the door</button><button class="btn alt" id="again">Play again</button></div>`);
+    $("knock").onclick = startPanel;
+    $("again").onclick = restartStory;
+  }, 900);
+}
+function storyLose(){
+  say(NARRATOR, "That's all for today. Come back tomorrow. Same time, same line.");
+  setTimeout(() => {
+    open(`<div class="kicker">Out of moves</div>
+      <div class="lose-hero">${avatar({custom:"harsha", mood:"sad"})}<div class="bubble-q">"Okay, that one stung. Let's try again."</div></div>
+      <h2>Looks like you didn't make the cut <i>this time</i>.</h2>
+      <p>You got to <b>${ord(S.rivals.length + 1)}</b> in line with ${S.rivals.length} still ahead of you. Tip: tap people to hear them out (it's free). Their lines are clues, and your misses stay noted on their tags.</p>
+      <div class="btns"><button class="btn" id="again">Try again</button></div>`);
+    $("again").onclick = restartStory;
+  }, 700);
+}
+function restartStory(){
+  close(); newStory(); render();
+  say(NARRATOR, "Back of the line. Ten moves. Let's go.");
+}
+
+/* ---------- Boss level: the panel ---------- */
+function startPanel(){
+  close();
+  dressScene("panel", {sign:"Wispr Flow", live:"Interview<br>in progress", liveShort:"Live"});
+  S = {mode:"panel", done:{}, sel:null, busy:false, over:false, linesUnlocked:false, founderTries:0};
+  APP.round = 0; APP.results = []; APP.beaten = []; APP.runs = {}; APP.done = {};
+  render();
+  open(`<div class="kicker">Boss level</div>
+    <h2>The <i>panel</i>.</h2>
+    <p>Three people. One question each. Answer with the receipts you just collected.</p>
+    <ul><li>Tap a panelist to hear their question.</li><li>Pick a card, then tap the panelist to answer.</li><li>No move limit in here. Just get it right.</li></ul>
+    <div class="btns"><button class="btn" id="go">Take a seat</button></div>`);
+  $("go").onclick = () => { close(); say(PANEL[0].look ? {name:PANEL[0].role, title:"Wispr Flow", look:PANEL[0].look} : NARRATOR, esc(`"${PANEL[0].q}"`)); };
+}
+function onPanelist(id){
+  if(S.busy) return;
+  const p = PANEL.find(x => x.id === id);
+  const who = {name:p.role, title:"Wispr Flow", look:p.look};
+  if(S.done[id]){ say(who, esc(`"${p.right || "You've got my attention."}"`)); return; }
+  if(!S.sel){ say(who, esc(`"${p.q}"`)); return; }
+  const cardId = S.sel; S.sel = null;
+  if(id === "founder"){
+    if(cardId === "lines"){ S.done.founder = true; render(); flipStep1(); return; }
+    const leadsDone = S.done.growth && S.done.partners;
+    S.founderTries++;
+    say(who, esc(`"${leadsDone ? p.wrong : "Convince my team first. Then we'll talk."}"`), leadsDone ? `<div class="receipt bad"><b>None of your receipts work here</b>He's right, someone out there has more experience. You need a different kind of answer. Check your hand.</div>` : "");
+    if(leadsDone) S.linesUnlocked = true;
+    render(); return;
+  }
+  const card = CARDS.find(c => c.id === cardId);
+  if(card && card.type === p.key){
+    S.done[id] = true;
+    say(who, esc(`"${p.right}"`), `<div class="receipt"><b>Receipt · ${esc(card.where)}</b>${esc(card.proof)}</div>`);
+  } else {
+    say(who, esc(`"${p.wrong}"`), `<div class="receipt bad"><b>Not the answer</b>Listen to the question again and pick the receipt that matches it.</div>`);
+  }
+  render();
+}
+
+/* ---------- The flip: slot reveal, three lines, names ---------- */
+function flipStep1(){
+  open(`<div class="kicker">The real answer</div>
+    <div class="lose-hero">${avatar({custom:"harsha"})}<div class="bubble-q">"I've been thinking about lines for a long time."</div></div>
+    <p>In Bengaluru there's a line everywhere: brunch spots, sneaker drops, Friday-night bars. Brands build those lines on purpose, for hype. Everyone in them is bored.</p>
+    <p><b>This isn't just a portfolio piece. It's a game you can keep playing.</b> Every line is generated, so no two are the same. Let me show you.</p>
+    <div class="btns"><button class="btn" id="go">Show us</button></div>`);
+  $("go").onclick = flipSlot;
+}
+function flipSlot(){
+  const r = mulberry32((Math.random()*2**32)>>>0);
+  const lineIds = shuffle(LINE_ORDER, r).concat([pick(LINE_ORDER, r)]);
+  const finals = lineIds.map((lid, i) => genLine(LINES[lid], 1, r, {poolSize:8}).people[0]);
+  open(`<div class="kicker">Generating a line</div>
+    <h2>Every line is <i>random</i>.</h2>
+    <div class="slots">${finals.map((_, i) => `<div class="reel" id="reel${i}"><div class="reel-face"></div><div class="reel-name">&nbsp;</div><div class="reel-title">&nbsp;</div></div>`).join("")}</div>
+    <p class="muted" id="slotCap">Names, moods, weak spots, even who's grouped with whom. Seeded daily, so everyone faces the same line on the same day.</p>
+    <div class="btns"><button class="btn" id="go" disabled>Spinning...</button></div>`, true);
+  const timers = [];
+  finals.forEach((f, i) => {
+    const face = document.querySelector(`#reel${i} .reel-face`);
+    const t = setInterval(() => {
+      const fake = genLine(LINES[pick(LINE_ORDER)], 1, mulberry32((Math.random()*2**32)>>>0), {poolSize:8}).people[0];
+      face.innerHTML = avatar(fake.look);
+    }, 90);
+    timers.push(t);
+    setTimeout(() => {
+      clearInterval(t);
+      face.innerHTML = avatar(f.look);
+      document.querySelector(`#reel${i}`).classList.add("stop");
+      document.querySelector(`#reel${i} .reel-name`).textContent = f.name;
+      document.querySelector(`#reel${i} .reel-title`).textContent = f.title + (f.tag ? ` · ${f.tag}` : "");
+      if(i === finals.length - 1){ const b = $("go"); b.disabled = false; b.textContent = "And every line is a brand's line"; }
+    }, 1100 + i * 450);
+  });
+  $("go").onclick = flipLines;
+}
+function lineTile(id, i, withSeat){
+  const L = LINES[id];
+  return `<div class="tile theme-${L.theme}">
+    <div class="tile-art">${FACADE[L.theme]}</div>
+    <div class="tile-what">${esc(L.what)}</div>
+    <h3>${esc(L.brand)}</h3>
+    <p>${esc(L.blurb)}</p>
+    <p class="prize">#1 today wins ${esc(L.prize)}</p>
+    ${withSeat ? `<label class="seat">Round ${i+1} · played by<input id="seat${i}" maxlength="24" value="${esc(APP.names[i])}"></label>` : `<button class="btn" data-line="${id}">Join this line</button>`}
+  </div>`;
+}
+const ROUND_MOVES = {store:8, cafe:7, bar:9};
+const TWIST_TEXT = {
+  store:"Stock drops with every move. If it sells out before you reach the door, you're done.",
+  cafe:"After move 2, someone's friend \"saved a spot\" and cuts in ahead of you.",
+  bar:"Happy hour ends after move 3. After that, every move costs 2."
+};
+// One screen: who plays which line, what each line is, and pick where to start
+function flipLines(){
+  open(`<div class="kicker">Three lines, three panelists</div>
+    <h2>Your turn to <i>stand in line</i>.</h2>
+    <p>All three lines are open at once. Put a name on each, then jump into any line. You can switch lines whenever you like and your progress is saved. Finish all three to see the leaderboard.</p>
+    <div class="tiles">${LINE_ORDER.map((id, i) => {
+      const L = LINES[id];
+      return `<div class="tile theme-${L.theme}">
+        <div class="tile-art">${FACADE[L.theme]}</div>
+        <div class="tile-what">${esc(L.what)}</div>
+        <h3>${esc(L.brand)}</h3>
+        <p>4 people ahead · ${ROUND_MOVES[id]} moves</p>
+        <p><b>Twist:</b> ${esc(TWIST_TEXT[id])}</p>
+        <p class="prize">#1 today wins ${esc(L.prize)}</p>
+        <label class="seat">Played by<input id="seat${i}" maxlength="24" value="${esc(APP.names[i])}"></label>
+        <button class="btn" data-pick="${id}">Play this line</button>
+      </div>`;
+    }).join("")}</div>`, true);
+  document.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => {
+    APP.names = APP.names.map((n, i) => ($("seat"+i).value || "").trim() || PANEL[i].role);
+    enterLine(b.dataset.pick);
+  });
+}
+// The three lines run side by side: pick any, switch any time, progress is kept
+function pickLine(){
+  const left = LINE_ORDER.filter(id => !APP.done[id]);
+  open(`<div class="kicker">${left.length === 3 ? "All three lines are live" : `${3 - left.length} of 3 lines finished`}</div>
+    <h2>Pick a <i>line</i>.</h2>
+    <p>You can switch lines any time from the strip above the street. Everything you've done in a line stays as you left it. Finish all three to see the leaderboard.</p>
+    <div class="tiles">${LINE_ORDER.map((id, i) => {
+      const L = LINES[id], d = APP.done[id], run = APP.runs[id];
+      return `<div class="tile theme-${L.theme}">
+        <div class="tile-art">${FACADE[L.theme]}</div>
+        <div class="tile-what">${esc(L.what)} · ${esc(APP.names[i])}</div>
+        <h3>${esc(L.brand)}</h3><p>${esc(L.blurb)}</p>
+        ${d ? `<p class="prize">Finished · ${d.score} pts</p>` : `<button class="btn" data-pick="${id}">${run ? "Resume" : "Play this line"}</button>`}
+      </div>`;
+    }).join("")}</div>`, true);
+  document.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => enterLine(b.dataset.pick));
+}
+function startRound(i){ enterLine(LINE_ORDER[i]); }
+function enterLine(lid){
+  if(S && S.busy) return;
+  close();
+  if(S && S.mode === "round" && !S.over) APP.runs[S.line.id] = S;
+  const L = LINES[lid], i = LINE_ORDER.indexOf(lid);
+  if(APP.runs[lid]){
+    S = APP.runs[lid];
+    dressScene(L.theme, {sign:L.brand, live:L.live, liveShort:L.shortLive});
+    if(S.hhOver){ $("street").classList.add("hh-over"); $("liveText").textContent = "Happy hour over"; $("liveShort").textContent = "Over"; }
+    render();
+    say(host(), esc(`Welcome back, ${S.player.name}. Your spot is safe: ${ord(S.rivals.length + 1)} in line, ${S.moves} moves left.`));
+    return;
+  }
+  newRun("round", lid, APP.names[i], PANEL[i].look);
+  APP.runs[lid] = S;
+  render();
+  say(host(), `${esc(APP.names[i])} joins the line at ${esc(L.brand)}. ${esc(L.tagline)}. <span class="fx">Twist: ${esc(TWIST_TEXT[lid])}</span>`);
+}
+function renderSwitcher(){
+  const sw = $("switcher");
+  if(S.mode !== "round"){ sw.innerHTML = ""; sw.hidden = true; return; }
+  sw.hidden = false;
+  sw.innerHTML = LINE_ORDER.map((id, i) => {
+    const L = LINES[id], d = APP.done[id], run = APP.runs[id], active = S.line.id === id;
+    const status = d ? `Done · ${d.score} pts` : active ? "Now playing" : run ? `Paused · ${ord(run.rivals.length + 1)} in line` : "Not started";
+    return `<button type="button" class="mini theme-${L.theme}${active ? " active" : ""}${d ? " done" : ""}" data-sw="${id}" ${d || active ? "disabled" : ""}>
+      <span class="mini-art">${FACADE[L.theme]}</span>
+      <span class="mini-txt"><b>${esc(L.brand)}</b><small>${esc(APP.names[i])} · ${esc(status)}</small></span>
+    </button>`;
+  }).join("");
+  sw.querySelectorAll("[data-sw]").forEach(b => b.onclick = () => enterLine(b.dataset.sw));
+}
+function roundEnd(won, bonus, why){
+  const L = S.line, name = S.player.name;
+  APP.done[L.id] = {name, line:L.id, score:S.score, won, spot:S.rivals.length + 1};
+  APP.results = LINE_ORDER.filter(id => APP.done[id]).map(id => APP.done[id]);
+  delete APP.runs[L.id];
+  renderSwitcher();
+  const left = LINE_ORDER.filter(id => !APP.done[id]);
+  say(host(), won ? "In you go." : why === "soldout" ? "That's it, sold out. Sorry." : "That's all for now.");
+  setTimeout(() => {
+    open(`<div class="kicker">${esc(L.brand)} · ${3 - left.length} of 3 lines finished</div>
+      <h2>${won ? `${esc(name)} made it <i>in</i>.` : why === "soldout" ? `<i>Sold out</i> before ${esc(name)} got in.` : `${esc(name)} got stuck at <i>${ord(S.rivals.length + 1)}</i>.`}</h2>
+      <div class="scoreline"><span class="stat">Score<b>${S.score}</b></span><span class="stat">Passed<b>${S.gained}</b></span>${won ? `<span class="stat">Moves left<b>${S.moves}</b> (+${bonus})</span>` : ""}<span class="stat">Backfires<b>${S.backfires}</b></span></div>
+      <p class="note">This was a short line. <b>Full version:</b> 10 people, groups and chain combos, and a new line every day.</p>
+      <div class="btns">${left.length
+        ? left.map(id => `<button class="btn${APP.runs[id] ? "" : " alt"}" data-next="${id}">${APP.runs[id] ? "Resume" : "Play"} ${esc(LINES[id].brand)}</button>`).join("")
+        : `<button class="btn" id="go">See today's leaderboard</button>`}</div>`);
+    if(left.length) document.querySelectorAll("[data-next]").forEach(b => b.onclick = () => enterLine(b.dataset.next));
+    else $("go").onclick = showBoard;
+  }, 800);
+}
+
+/* ---------- Leaderboard + rewards ---------- */
+function boardRows(){
+  const r = mulberry32(hashStr(todayKey() + "|npc"));
+  const npcs = [...LINEUP, {name:NARRATOR.name, title:"Security", id:"uncle"}].map(n => ({name:n.name, sub:n.title, score: Math.round((140 + r()*380)/10)*10, npc:true}));
+  const players = APP.results.map(x => ({name:x.name, sub:LINES[x.line].brand, score:x.score, won:x.won, line:x.line, npc:false}));
+  return [...players, ...npcs].sort((a,b) => b.score - a.score).map((x, i) => ({...x, rank:i+1}));
+}
+function rewardFor(row){
+  if(row.npc) return "";
+  const L = LINES[row.line];
+  if(row.rank === 1) return `Wins ${L.prize} at ${L.brand}`;
+  if(row.rank <= 3) return `10% off at ${L.brand}`;
+  if(row.won) return `5% off at ${L.brand} for finishing`;
+  return `No coupon today. New line tomorrow.`;
+}
+function showBoard(){
+  close();
+  const rows = boardRows();
+  open(`<div class="kicker">Today's leaderboard</div>
+    <h2>How the <i>panel</i> did.</h2>
+    <table class="board"><thead><tr><th>#</th><th>Player</th><th>Score</th><th>Reward</th></tr></thead><tbody>
+    ${rows.map(x => `<tr class="${x.npc ? "npc" : "me"}"><td>${x.rank}</td><td><b>${esc(x.name)}</b><br><span>${esc(x.sub)}</span></td><td>${x.score}</td><td>${esc(rewardFor(x))}</td></tr>`).join("")}
+    </tbody></table>
+    <p class="note">Rewards: #1 wins the line's prize, top 3 get 10% off, everyone who reaches the door gets 5%. The other names are the people you passed in Level 1, plus Security Uncle, who refuses to explain his score.</p>
+    <div class="btns"><button class="btn" id="go">What's in it for a brand?</button></div>`, true);
+  $("go").onclick = showPitch;
+}
+function showPitch(){
+  open(`<div class="kicker">The partnership pitch</div>
+    <h2>Turn the wait into the <i>marketing</i>.</h2>
+    <p>Every hyped place in Bengaluru builds a line on purpose. Right now the line just makes people bored, and a bit annoyed. This makes it the best part.</p>
+    <ul>
+      <li><b>A line people play instead of resent.</b> Scan a QR in the queue, play while you wait.</li>
+      <li><b>One daily seed.</b> Everyone faces the same line, so the leaderboard is fair and worth sharing.</li>
+      <li><b>Rewards that pull people back.</b> #1 eats or drinks free, the top of the board gets 10%, everyone who finishes gets 5%.</li>
+      <li><b>Every player leaves a name.</b> And a reason to come back tomorrow, when the line changes.</li>
+      <li><b>Each brand gets its own window dressing.</b> A streetwear drop, a brunch spot, a taproom: same engine, new skin, new gags.</li>
+    </ul>
+    <p>Building and running partnerships like this is the job I want.</p>
+    <div class="btns"><button class="btn" id="go">One last thing</button></div>`);
+  $("go").onclick = finale;
+}
+
+/* ---------- Finale ---------- */
+function finale(){
+  const crowd = [...LINEUP, ...APP.beaten.filter(b => b.gen).slice(0, 6)];
+  open(`<div class="finale">
+    <div class="crowd">${crowd.map((c, i) => `<div class="fan" style="animation-delay:${(i%5)*0.12}s">${avatar(c.look)}${i % 3 === 0 ? `<span class="cheer">Hire him!</span>` : ""}</div>`).join("")}</div>
+    <div class="front">
+      ${PANEL.slice(0,1).map(p => `<div class="pp">${avatar(p.look)}<span>${esc(APP.names[0])}</span></div>`).join("")}
+      <div class="pp me">${avatar({custom:"harsha"})}<span>Harsha</span></div>
+      ${PANEL.slice(1).map((p, i) => `<div class="pp">${avatar(p.look)}<span>${esc(APP.names[i+1])}</span></div>`).join("")}
+    </div>
+    <h2>So... should you <i>hire me</i>?</h2>
+    <p>Everyone you beat today seems to think so.</p>
+    <div class="yesno" id="yesno"><button class="btn" id="yes">Yes</button><button class="btn alt" id="no">No</button></div>
+    <div id="contact"></div>
+  </div>`, true);
+  let dodges = 0;
+  const no = $("no");
+  const dodge = (e) => {
+    if(dodges >= 4){ no.textContent = "Okay fine, yes"; no.onclick = sayYes; return; }
+    e && e.preventDefault();
+    dodges++;
+    const box = $("yesno").getBoundingClientRect();
+    no.style.position = "relative";
+    no.style.left = `${Math.round(30 + Math.random() * Math.max(40, Math.min(200, box.width / 2 - 90)))}px`; // always away from Yes
+    no.style.top = `${Math.round((Math.random()-.5) * 50)}px`;
+    no.textContent = ["Are you sure?","Really?","Think of the 6 people you beat","Last chance"][dodges-1];
+  };
+  no.addEventListener("mouseenter", dodge);
+  no.addEventListener("click", (e) => { if(dodges < 4) dodge(e); });
+  $("yes").onclick = sayYes;
+}
+function sayYes(){
+  APP.storyDone = true; store.set("storyDone", true);
+  $("yesno").innerHTML = "";
+  $("contact").innerHTML = `<div class="contact">
+    <p><b>Great call.</b> Here's how to reach me:</p>
+    <a class="btn" href="mailto:imharsh9@gmail.com?subject=7th%20in%20line%3A%20let%27s%20talk">Email imharsh9@gmail.com</a>
+    <a class="btn alt" href="https://www.linkedin.com/in/harsh-a-vardhan" target="_blank" rel="noopener">LinkedIn</a>
+    <a class="btn alt" href="resume.pdf" download="Harsha_Vardhan_Resume.pdf">Download my resume</a>
+    <p class="note">Free Play is now unlocked: three full lines, 10 people each, with groups and a new line every day.</p>
+    <button class="btn alt" id="home">Back to the line</button>
+  </div>`;
+  $("home").onclick = goHome;
+}
+function goHome(){
+  close();
+  remixLineup();
+  peekState.left = 2; peekState.locked = false;
+  newStory(); render();
+  say(NARRATOR, "Back again? Same people, new order. Or try Level select for the other lines.");
+}
+
+/* ---------- Free Play ---------- */
+function levelSelect(){
+  if(S && S.busy) return;
+  open(`<div class="kicker">Level select · Free Play</div>
+    <h2>Pick a <i>line</i>.</h2>
+    <p>10 random people, one group with a leader, and a new line every day. Same line for everyone today, so the leaderboard is fair.</p>
+    <div class="tiles">${LINE_ORDER.map((id, i) => lineTile(id, i, false)).join("")}</div>
+    <label class="seat solo">Your name for the leaderboard<input id="fpName" maxlength="24" value="${esc(store.get("name", ""))}" placeholder="Your name"></label>
+    <div class="btns"><button class="btn alt" id="story">Back to the applicant queue</button></div>`, true);
+  document.querySelectorAll("[data-line]").forEach(b => b.onclick = () => {
+    const name = ($("fpName").value || "").trim() || "You";
+    store.set("name", name);
+    startFree(b.dataset.line, name);
+  });
+  $("story").onclick = () => { close(); if(S.mode !== "story"){ newStory(); render(); } };
+}
+const FREE_LOOK = {skin:"#FFC48A", hair:"short", hc:"#1A1A1A", shirt:"#03504A", pants:"#CDB68E", shoes:"#fff", acc:[]};
+function startFree(lid, name){
+  close();
+  newRun("free", lid, name, FREE_LOOK);
+  render();
+  const L = LINES[lid];
+  say(host(), esc(`Welcome to ${L.brand}. ${L.tagline}. Ten ahead of you, ${S.moves} moves. Watch for the group leader.`));
+}
+function freeEnd(won, bonus, why){
+  const L = S.line;
+  const key = `board.${L.id}.${todayKey()}`;
+  const board = store.get(key, []);
+  board.push({name:S.player.name, score:S.score});
+  board.sort((a,b) => b.score - a.score);
+  store.set(key, board.slice(0, 10));
+  const rows = board.slice(0, 10);
+  setTimeout(() => {
+    open(`<div class="kicker">Free Play · ${esc(L.brand)}</div>
+      <h2>${won ? `You made it <i>in</i>.` : why === "soldout" ? `<i>Sold out.</i>` : `Stuck at <i>${ord(S.rivals.length + 1)}</i>.`}</h2>
+      <div class="scoreline"><span class="stat">Score<b>${S.score}</b></span><span class="stat">Passed<b>${S.gained}</b></span><span class="stat">Chains<b>${S.chains}</b></span><span class="stat">Backfires<b>${S.backfires}</b></span></div>
+      <table class="board"><thead><tr><th>#</th><th>Today on this device</th><th>Score</th></tr></thead><tbody>
+      ${rows.map((x,i) => `<tr><td>${i+1}</td><td>${esc(x.name)}</td><td>${x.score}</td></tr>`).join("")}</tbody></table>
+      <p class="note">Same line all day. A new one tomorrow.</p>
+      <div class="btns"><button class="btn" id="again">Play this line again</button><button class="btn alt" id="lvl">Other lines</button></div>`);
+    $("again").onclick = () => startFree(L.id, S.player.name);
+    $("lvl").onclick = levelSelect;
+  }, 800);
+}
+
+/* ---------- Fit Check brand mascot: Drip, a hoodie with a ghost's wavy hem ---------- */
+const DRIP_SVG = `<svg viewBox="0 0 64 66" aria-hidden="true">
+  <ellipse cx="32" cy="63" rx="13" ry="2.4" fill="rgba(0,0,0,.14)"/>
+  <path d="M15 37 C9 35 6 30 8 25" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/><path d="M15 37 C9 35 6 30 8 25" fill="none" stroke="#FF6B4A" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M49 37 C55 39 57 43 55 47" fill="none" stroke="#1A1A1A" stroke-width="6" stroke-linecap="round"/><path d="M49 37 C55 39 57 43 55 47" fill="none" stroke="#FF6B4A" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M15 31 C15 14 23 5 32 5 C41 5 49 14 49 31 L49 51 Q45.5 57 42 51 Q38.5 57 35 51 Q32 57 28.5 51 Q25 57 22 51 Q18.5 57 15 51Z" fill="#FF6B4A" stroke="#1A1A1A" stroke-width="1.8" stroke-linejoin="round"/>
+  <ellipse cx="32" cy="24" rx="10.5" ry="9.5" fill="#FFF7DA" stroke="#1A1A1A" stroke-width="1.6"/>
+  <circle cx="28" cy="23" r="1.6" fill="#1A1A1A"/><circle cx="36" cy="23" r="1.6" fill="#1A1A1A"/>
+  <path d="M28.6 27 Q32 30 35.4 27" fill="none" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="25.6" cy="26.6" r="1.6" fill="#F7B9E1"/><circle cx="38.4" cy="26.6" r="1.6" fill="#F7B9E1"/>
+  <path d="M28 34 v7 M36 34 v7" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M24 45 h16" stroke="#1A1A1A" stroke-width="1.4" stroke-linecap="round"/>
+</svg>`;
+const DRIP = {name:"Drip", title:"Fit Check's mascot"};
+const DRIP_TIPS = [
+  "Psst. Stock drops with every move, including Observes. Spend them wisely.",
+  "Psst. Tap people first. What they say gives away what they care about.",
+  "Psst. Resellers only care about one number. Make it go down.",
+  "Psst. Hypebeasts hate two things. Can you guess both?",
+  "Psst. If it sells out, nobody gets a fit. Move fast."
+];
+FACADE.store = DRIP_SVG;
+$("mascot").innerHTML = DRIP_SVG;
+$("mascot").onclick = () => {
+  if(!S.line || S.line.id !== "store") return;
+  $("speech").innerHTML = `<div class="sp-av">${DRIP_SVG}</div><div class="sp-body"><div class="sp-name">${SQUIG}<span>${DRIP.name} · ${esc(DRIP.title)}</span></div><div class="sp-text">${pick(DRIP_TIPS)}</div></div>`;
+  $("mascot").classList.remove("hop"); void $("mascot").offsetWidth; $("mascot").classList.add("hop");
+};
+/* ---------- Boot ---------- */
+newStory(); render();
+say(NARRATOR, "Line starts here.");
+intro();
+window.__game = { get state(){ return S; }, APP, CARDS, RIVALS, LINES, get lineup(){ return LINEUP; }, remixLineup, startPanel, startRound, startFree, finale, showBoard, flipSlot, levelSelect, genLine, mulberry32 };
+
+
+})();
+</script>
+</body>
+</html>
