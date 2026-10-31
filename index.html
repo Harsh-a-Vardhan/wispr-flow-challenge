@@ -395,6 +395,8 @@ button{font:inherit;color:inherit}
 .btn.wide{flex:1;text-align:center}
 
 .daily{display:inline-block;background:var(--lav);border:1.5px solid var(--ink);border-radius:999px;padding:5px 12px;font-weight:700;font-size:13px;margin:4px 0 6px}
+
+.sendoff{text-align:center;margin:16px 0 0;font-style:italic}
 </style>
 </head>
 <body>
@@ -1476,9 +1478,10 @@ function storyWin(bonus){
   setTimeout(() => {
     open(`<div class="kicker">Level 1 cleared</div>
       <h2>You're at the <i>door</i>.</h2>
-      <p>Six rivals, six receipts. Here's everything you just played, in one place:</p>
+      <p><b>Look how far you've come. Trust yourself, you've got this.</b> Six rivals, six receipts, and here's everything you just played, in one place:</p>
       <div class="scoreline"><span class="stat">Score<b>${S.score}</b></span><span class="stat">Moves left<b>${S.moves}</b> (+${bonus})</span><span class="stat">Backfires<b>${S.backfires}</b></span></div>
       <div class="rec-list">${receiptsHTML()}</div>
+      <p class="muted sendoff">Everyone walks in with strengths and weak spots. The trick is making today your best day.</p>
       <div class="btns"><button class="btn wide" id="knock">Knock on the door</button></div>`);
     $("knock").onclick = startPanel;
   }, 900);
@@ -1745,20 +1748,35 @@ function finale(){
     <div class="yesno" id="yesno"><button class="btn" id="yes">Yes</button><button class="btn alt" id="no">No</button></div>
     <div id="contact"></div>
   </div>`, true);
-  let dodges = 0;
+  // The "No" button dodges a few times, then gives up and becomes a yes.
+  // One handler for every input: taps on phones never fire a second "mouseenter",
+  // so the final switch must happen on click, not only on hover.
   const no = $("no");
+  const LABELS = ["Are you sure?", "Really?", "Think of the 6 people you beat", "Last chance"];
+  let dodges = 0, gaveUp = false;
   const dodge = (e) => {
-    if(dodges >= 4){ no.textContent = "Okay fine, yes"; no.onclick = sayYes; return; }
-    e && e.preventDefault();
+    if(e) e.preventDefault();
+    if(gaveUp){ sayYes(); return; }
+    if(dodges >= LABELS.length){
+      gaveUp = true;
+      no.textContent = "Okay fine, yes";
+      no.classList.remove("alt");
+      no.style.left = "0px"; no.style.top = "0px";
+      return;
+    }
     dodges++;
     const box = $("yesno").getBoundingClientRect();
     no.style.position = "relative";
     no.style.left = `${Math.round(30 + Math.random() * Math.max(40, Math.min(200, box.width / 2 - 90)))}px`; // always away from Yes
     no.style.top = `${Math.round((Math.random()-.5) * 50)}px`;
-    no.textContent = ["Are you sure?","Really?","Think of the 6 people you beat","Last chance"][dodges-1];
+    no.textContent = LABELS[dodges - 1];
   };
-  no.addEventListener("mouseenter", dodge);
-  no.addEventListener("click", (e) => { if(dodges < 4) dodge(e); });
+  let lastHover = 0;
+  no.addEventListener("click", (e) => { if(Date.now() - lastHover < 400){ e.preventDefault(); return; } dodge(e); });
+  // Only real mouse pointers get the run-away-on-hover trick
+  if(window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches){
+    no.addEventListener("mouseenter", () => { if(!gaveUp && dodges < LABELS.length){ lastHover = Date.now(); dodge(); } });
+  }
   $("yes").onclick = sayYes;
 }
 function sayYes(){
