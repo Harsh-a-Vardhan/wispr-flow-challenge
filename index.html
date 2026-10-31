@@ -397,6 +397,15 @@ button{font:inherit;color:inherit}
 .daily{display:inline-block;background:var(--lav);border:1.5px solid var(--ink);border-radius:999px;padding:5px 12px;font-weight:700;font-size:13px;margin:4px 0 6px}
 
 .sendoff{text-align:center;margin:16px 0 0;font-style:italic}
+
+/* names never collide with neighbours */
+.person .nm{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:520px){
+  .office .live{padding:3px 5px;gap:4px;font-size:8px}
+  .office .live .ls{max-width:46px;overflow:hidden;text-overflow:ellipsis}
+}
+
+@media (max-width:520px){ .office .sign{font-size:10.5px;padding:6px 4px;word-break:break-word} }
 </style>
 </head>
 <body>
@@ -577,7 +586,7 @@ const MOODS = [
 ];
 
 const FEMALE_NAMES = ["Ishita","Megha","Nandini","Lavanya","Deepa","Shreya","Bhavana","Keerthi","Pallavi","Ramya","Swathi","Aishwarya","Chaitra","Varsha","Rachana",
-  "Zainab","Merin","Lakshmi","Ayesha","Sowmya","Trisha","Bhumika","Gayathri","Sana","Poornima"];
+  "Zainab","Merin","Lakshmi","Ayesha","Sowmya","Trisha","Bhumika","Gayathri","Sana","Nikita"];
 const MALE_NAMES = ["Aarav","Rohit","Sameer","Pranav","Harish","Gautam","Vivek","Anirudh","Suhas","Naveen","Karthik","Tarun","Mohan","Sahil","Tejas","Abhishek",
   "Farhan","Joel","Sanjay","Imran","Neeraj","Raghav","Akhil","Dhruv","Ritwik","Yusuf"];
 const FIRST_NAMES = [...FEMALE_NAMES, ...MALE_NAMES, "Kiran"];
@@ -619,7 +628,7 @@ const LINES = {
     ]
   },
   cafe: {
-    id:"cafe", brand:"Benne & Brew", what:"Cafe", tagline:"Sunday brunch · 45 min wait", live:"Now seating", shortLive:"Seating",
+    id:"cafe", brand:"Benne & Brew", what:"Cafe", tagline:"Sunday brunch · 45 min wait", live:"Now seating", shortLive:"Open",
     prize:"brunch for two on the house", twist:"cutin", theme:"cafe",
     blurb:"The hyped brunch spot. Someone's friend always \"saved a spot\".",
     deck:["prank","prod","celeb","light","nextdoor","crypto","rain","eggs","wifi"],
@@ -677,7 +686,7 @@ const LINES = {
       {k:"bachelor", g:"m", title:"Bachelor Party", hair:"cap", acc:["shades"], weak:["prank","celeb"], immune:["ex"],
        quote:"Last night of freedom! Also we have to be home by 11.", hidden:"Chaotic. Easily distracted by anything shiny.",
        bounce:"His ex? Bro, that's literally why we're here."},
-      {k:"guitar", g:"m", title:"Guy Who Brought a Guitar", hair:"long", acc:[], weak:["rain","prank"], immune:["ipl"],
+      {k:"guitar", g:"m", title:"Guy Who Brought a Guitar", hair:"curly", acc:[], weak:["rain","prank"], immune:["ipl"],
        quote:"Does anyone mind if I play Wonderwall? Just once?", hidden:"Protective of the guitar. Rain is his enemy.",
        bounce:"Cricket? Music is my sport."}
     ]
@@ -923,11 +932,17 @@ function remixLineup(){
 }
 
 /* ---------- Procedural people (boss rounds + Free Play) ---------- */
+// Gender is decided first, then the name AND the look follow from it,
+// so a long-haired character never gets a man's name and vice versa.
+const HAIR_FOR = {f:["long","bun"], m:["short","cap","curly"]};
 function genPerson(line, arch, r, used, idx){
+  const g = arch.g || (r() < 0.5 ? "f" : "m");
+  const pool = g === "f" ? FEMALE_NAMES : MALE_NAMES;
   let name; let tries = 0;
-  const pool = arch.g === "f" ? FEMALE_NAMES : arch.g === "m" ? MALE_NAMES : FIRST_NAMES;
-  do { name = pick(pool, r); tries++; } while(used.has(name) && tries < 60);
+  do { name = pick(pool, r); tries++; } while(used.has(name) && tries < 80);
   used.add(name);
+  const hair = HAIR_FOR[g].includes(arch.hair) ? arch.hair : pick(HAIR_FOR[g], r);
+  const acc = g === "f" ? arch.acc.filter(a => a !== "mustache") : arch.acc;
   const weak = arch.weak.slice(), immune = arch.immune.slice();
   let tag = "";
   if(r() < 0.5){
@@ -937,8 +952,8 @@ function genPerson(line, arch, r, used, idx){
     tag = m.tag;
   }
   return {
-    id:`${line.id}-${idx}-${name}`, name, title:arch.title, tag, gen:true, arch:arch.k,
-    look:{skin:pick(SKINS,r), hair:arch.hair, hc:pick(HAIRC,r), shirt:pick(SHIRTS,r), pants:pick(PANTS,r), shoes:pick(SHOES,r), acc:arch.acc, mood: r()<.3 ? "smug" : undefined},
+    id:`${line.id}-${idx}-${name}`, name, g, title:arch.title, tag, gen:true, arch:arch.k,
+    look:{skin:pick(SKINS,r), hair, hc:pick(HAIRC,r), shirt:pick(SHIRTS,r), pants:pick(PANTS,r), shoes:pick(SHOES,r), acc, mood: r()<.3 ? "smug" : undefined},
     quote:arch.quote, hidden:arch.hidden, weak, immune, bounce:arch.bounce, group:null, leader:false
   };
 }
@@ -1171,7 +1186,7 @@ function personBtn(cls, id, look, name, sub, chips, aria, badges=""){
   const b = document.createElement("button");
   b.className = "person " + cls; b.type = "button"; b.dataset.id = id;
   if(aria) b.setAttribute("aria-label", aria);
-  b.innerHTML = `<span class="badges">${badges}</span>${avatar(look)}<span class="nm">${esc(name)}</span><span class="tg">${esc(sub || "")}</span><span class="chips">${chips || ""}</span>`;
+  b.innerHTML = `<span class="badges">${badges}</span>${avatar(look)}<span class="nm" data-full="${esc(name)}" title="${esc(name)}">${esc(name)}</span><span class="tg">${esc(sub || "")}</span><span class="chips">${chips || ""}</span>`;
   return b;
 }
 /* Icons above heads: what you know about someone. Tap them for the details. */
@@ -1186,6 +1201,26 @@ function rivalBadges(r){
   const back = r.seen ? r.immune.length : r.immSeen.length;
   return badge("weak", weak, "Weak spot found") + badge("meh", r.tried.length, "Tried, no effect") + badge("back", back, "Backfires");
 }
+// If a name doesn't fit under its person on this screen, shorten it.
+// Panel roles use fixed short forms; everyone else gets their first 4 letters ("Gaya.").
+const SHORT_ROLE = {"Growth Lead":"Grw L", "Partnerships Lead":"Ptn L", "Founder":"Fndr"};
+const AVOID3 = ["Gay","Ass","Fat","Sex","Cum","Fag","Nig","Pak"];
+function fitNames(){
+  document.querySelectorAll("#queue .person .nm").forEach(el => {
+    const full = el.dataset.full || el.textContent;
+    const fits = t => { el.textContent = t; return el.scrollWidth <= el.clientWidth + 1; };
+    if(fits(full)) return;
+    const tries = SHORT_ROLE[full] ? [SHORT_ROLE[full]] : [];
+    const four = full.slice(0, 4);
+    if(full.length > 5 && !["Poor","Dumb","Fart","Shit","Slut"].includes(four)) tries.push(four + ".", four);
+    const three = full.slice(0, 3);
+    if(!AVOID3.includes(three)) tries.push(three + ".");
+    for(const t of tries){ if(fits(t)) return; }
+    el.textContent = tries[tries.length - 1] || full;
+  });
+}
+let fitTimer;
+window.addEventListener("resize", () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitNames, 120); });
 function rivalChips(r){
   if(r.leader) return `<span class="chip lead">Leader</span>`;
   if(r.group) return `<span class="chip grp">Group</span>`;
@@ -1289,7 +1324,7 @@ function renderTray(){
   });
 }
 
-function render(){ renderSwitcher(); renderHud(); renderQueue(); renderHand(); renderTray(); }
+function render(){ renderSwitcher(); renderHud(); renderQueue(); fitNames(); renderHand(); renderTray(); }
 
 function say(who, text, extra=""){
   $("speech").innerHTML = `<div class="sp-av">${avatar(who.look)}</div>
